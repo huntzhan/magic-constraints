@@ -61,7 +61,6 @@ setup(
     install_requires=load_requirements('requirements.txt'),
     entry_points={
         'console_scripts': [
-            'magic_parameter_cli = magic_parameter.main:entry_point'
         ],
     },
 )

@@ -5,7 +5,4 @@ from __future__ import (
 from builtins import *                  # noqa
 from future.builtins.disabled import *  # noqa
 
-
-def entry_point():
-    print("entry_point")
-    return 42
+# from magic_parameter.main import
