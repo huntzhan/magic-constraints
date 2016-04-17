@@ -7,7 +7,7 @@ from future.builtins.disabled import *  # noqa
 
 
 NAME = 'magic_parameter'
-VERSION = '0.1.0-dev-0'
+VERSION = '0.1.0-rc-1'
 AUTHORS = [
     'huntzhan',
 ]

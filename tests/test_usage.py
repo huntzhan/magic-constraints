@@ -114,3 +114,38 @@ def test_class_init_parameter():
 
     Case2(1)
     Case2(a=1)
+
+
+def test_nested_type():
+
+    @function_parameter([
+        ('a', list_t(int)),
+        ('b', list_t(or_t(int, float)), None),
+    ])
+    def func1(args):
+        return args.a, args.b
+
+    r1, r2 = func1([1, 2])
+    assert r1 == [1, 2]
+    assert r2 is None
+    assert [1, 2], [1, 2.0] == func1([1, 2], [1, 2.0])
+
+    with pytest.raises(TypeError):
+        func1([1.0, 2.0])
+
+    with pytest.raises(TypeError):
+        func1(a=[1], b=['test'])
+
+    @function_parameter([
+        ('a', dict_t(str, int)),
+    ])
+    def func2(args):
+        return args.a
+
+    assert {'a': 1, 'b': 2} == func2({'b': 2, 'a': 1})
+
+    with pytest.raises(TypeError):
+        func2({'a': 1.0})
+
+    with pytest.raises(TypeError):
+        func2({1: 1})
