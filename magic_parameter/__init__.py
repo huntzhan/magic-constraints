@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 from __future__ import (
-    division, absolute_import, print_function, unicode_literals,
+    division, absolute_import, print_function,
+    # commented out since __all__ require str in Python 2.
+    # unicode_literals,
 )
 
-# commented out since __all__ require string in Python 2.
-# from builtins import *                  # noqa
-# from future.builtins.disabled import *  # noqa
+from builtins import *                  # noqa
+from future.builtins.disabled import *  # noqa
 
 
 from magic_parameter.decorator import (
