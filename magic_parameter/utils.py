@@ -5,4 +5,10 @@ from __future__ import (
 from builtins import *                  # noqa
 from future.builtins.disabled import *  # noqa
 
-# from magic_parameter.main import
+
+def type_object(obj):
+    return hasattr(obj, '__bases__')
+
+
+def nontype_object(obj):
+    return not type_object(obj)
