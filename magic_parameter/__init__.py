@@ -2,8 +2,11 @@
 from __future__ import (
     division, absolute_import, print_function, unicode_literals,
 )
-from builtins import *                  # noqa
-from future.builtins.disabled import *  # noqa
+
+# commented out since __all__ require string in Python 2.
+# from builtins import *                  # noqa
+# from future.builtins.disabled import *  # noqa
+
 
 from magic_parameter.decorator import (
     function_parameter,
