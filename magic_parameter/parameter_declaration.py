@@ -5,7 +5,7 @@ from __future__ import (
 from builtins import *                  # noqa
 from future.builtins.disabled import *  # noqa
 
-from collections import namedtuple
+from collections import namedtuple, Iterable
 
 from magic_parameter.type_declaration import type_decl_factory
 
@@ -36,7 +36,11 @@ class ParameterDecl(object):
 
 # intput: (<name>, <type decl>, [<default>])...
 # output: ParameterDeclPackage
-def build_parameters_decls(raw_parameter_decls):
+def build_parameters_decl_package(raw_parameter_decls):
+    if not isinstance(raw_parameter_decls, Iterable):
+        raise TypeError(
+            'raw_parameter_decls should be Iterable.',
+        )
 
     name_hash = {}
     parameter_decls = []
