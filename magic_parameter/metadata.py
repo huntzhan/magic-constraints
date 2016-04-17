@@ -2,12 +2,10 @@
 from __future__ import (
     division, absolute_import, print_function, unicode_literals,
 )
-from builtins import *                  # noqa
-from future.builtins.disabled import *  # noqa
 
 
 NAME = 'magic_parameter'
-VERSION = '0.1.0-rc-1'
+VERSION = '0.1.0-rc-3'
 AUTHORS = [
     'huntzhan',
 ]
