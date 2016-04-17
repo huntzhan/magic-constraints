@@ -21,7 +21,7 @@ class AttributesBinder(object):
         self.warning = warning
 
     def __call__(self, attr, val):
-        if warning and hasattr(self.obj, attr):
+        if self.warning and attr in self.obj.__dict__:
             raise TypeError(
                 'override attr {0}'.format(attr),
             )
@@ -59,7 +59,7 @@ def method_parameter(
         pass_by_function_argument=False,
         # 2.
         pass_by_cls_or_self_attributes=False,
-        no_warning_on_cls_or_self_attributes=False,
+        no_warning_on_cls_or_self_attributes=True,
         # 3.
         # pass_by_function_attributes=False,
         # no_warning_on_func_attr=False,
@@ -103,30 +103,28 @@ def method_init_parameter(raw_parameter_decls):
     )
 
 
-def class_init_parameter():
+def class_init_parameter(user_defined_class):
 
-    def decorator(user_defined_class):
-
-        if nontype_object(user_defined_class):
-            raise SyntaxError(
-                '{0} is not a class.'.format(user_defined_class),
-            )
-
-        raw_parameter_decls = getattr(
-            user_defined_class,
-            'PARAMETERS',
-            None,
+    if nontype_object(user_defined_class):
+        raise SyntaxError(
+            '{0} is not a class.'.format(user_defined_class),
         )
 
-        predefined_init = getattr(
-            user_defined_class,
-            '__init__',
-        )
+    raw_parameter_decls = getattr(
+        user_defined_class,
+        'PARAMETERS',
+        None,
+    )
 
-        @method_init_parameter(raw_parameter_decls)
-        def init(self):
-            predefined_init(self)
+    predefined_init = getattr(
+        user_defined_class,
+        '__init__',
+    )
 
-        setattr(user_defined_class, '__init__', init)
+    @method_init_parameter(raw_parameter_decls)
+    def init(self):
+        predefined_init(self)
 
-    return decorator
+    setattr(user_defined_class, '__init__', init)
+
+    return user_defined_class

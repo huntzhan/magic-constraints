@@ -94,7 +94,7 @@ class TypeDecl(object):
                 'Rule:\n{0}\n'
                 'Arg: {1}\n'
             )
-            raise TypeError(tpl.format(self, arg))
+            raise TypeError(tpl.format(self, val))
 
     def check_argument(self, arg):
         self._check_value_type(arg, self.type_)
