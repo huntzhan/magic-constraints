@@ -5,6 +5,8 @@ from __future__ import (
 from builtins import *                  # noqa
 from future.builtins.disabled import *  # noqa
 
+import types
+
 from magic_parameter.parameter_declaration import (
     build_parameters_decl_package,
 )
@@ -39,6 +41,11 @@ def function_parameter(
     pdp = build_parameters_decl_package(raw_parameter_decls)
 
     def decorator(func):
+        if not isinstance(func, types.FunctionType):
+            raise TypeError(
+                '{0} should be FunctionType.'.format(func),
+            )
+
         def wrapper(*args, **kwargs):
 
             slots = transform_to_slots(pdp, *args, **kwargs)
@@ -72,6 +79,11 @@ def method_parameter(
     pdp = build_parameters_decl_package(raw_parameter_decls)
 
     def decorator(func):
+        if not isinstance(func, types.FunctionType):
+            raise TypeError(
+                '{0} should be FunctionType.'.format(func),
+            )
+
         def wrapper(cls_or_self, *args, **kwargs):
 
             slots = transform_to_slots(pdp, *args, **kwargs)

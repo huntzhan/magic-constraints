@@ -53,8 +53,17 @@ def test_method_parameter():
             pass_by_cls_or_self_attributes=True,
             no_warning_on_cls_or_self_attributes=False,
         )
-        def test_self(self):
+        def test_self1(self):
             assert self.a == 1
+
+        @method_parameter(
+            [
+                ('a', int),
+            ],
+            pass_by_function_argument=True,
+        )
+        def test_self2(self, args):
+            assert args.a == 1
 
     Case1.test_cls(1)
     Case1.test_cls(a=1)
@@ -62,9 +71,29 @@ def test_method_parameter():
         Case1.test_cls(2)
 
     case1 = Case1()
-    case1.test_self(1)
+    case1.test_self1(1)
+    case1.test_self2(1)
+
     with pytest.raises(TypeError):
-        case1.test_self(1)
+        case1.test_self1(1)
+    case1.test_self2(1)
+
+    with pytest.raises(SyntaxError):
+
+        class Case2(object):
+
+            @classmethod
+            @method_parameter(
+                [
+                    ('a', int),
+                ],
+                # pass_by_cls_or_self_attributes=True,
+            )
+            def test_cls(cls):
+                pass
+
+    with pytest.raises(TypeError):
+        method_parameter([], pass_by_function_argument=True)(1)
 
 
 def test_method_init_parameter():
@@ -114,6 +143,9 @@ def test_class_init_parameter():
 
     Case2(1)
     Case2(a=1)
+
+    with pytest.raises(SyntaxError):
+        class_init_parameter(1)
 
 
 def test_nested_type():

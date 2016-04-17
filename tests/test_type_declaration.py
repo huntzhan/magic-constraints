@@ -5,7 +5,7 @@ from __future__ import (
 from builtins import *                  # noqa
 from future.builtins.disabled import *  # noqa
 
-# import pytest
+import pytest
 from magic_parameter.type_declaration import *  # noqa
 
 
@@ -35,3 +35,15 @@ def test_nontype_obj():
     type_decl_factory(
         list_t(or_t(int, float)),
     )
+
+    with pytest.raises(SyntaxError):
+        type_decl_factory(
+            [int, float],
+        )
+    with pytest.raises(SyntaxError):
+        type_decl_factory(
+            {
+                int: float,
+                float: str,
+            },
+        )
