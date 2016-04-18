@@ -5,7 +5,7 @@ from __future__ import (
 
 
 NAME = 'magic_parameter'
-VERSION = '0.1.0'
+VERSION = '0.2.0-rc-1'
 AUTHORS = [
     'huntzhan',
 ]
