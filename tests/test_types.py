@@ -13,3 +13,8 @@ def test_shit():
     assert isinstance([], Sequence)
     assert isinstance([1, 2, 3], Sequence[int])
     assert not isinstance([1, 2.0, 3], Sequence[int])
+
+    assert not issubclass(Sequence[int], Sequence)
+    assert not issubclass(Sequence[int], Sequence)
+    assert not isinstance(Sequence, Sequence[int])
+    assert not isinstance(Sequence, Sequence[int])
