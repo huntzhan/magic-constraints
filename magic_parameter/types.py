@@ -12,13 +12,17 @@ from abc import ABCMeta
 import collections as abc
 
 
-def CreateMetaMagicType(cls):
+def CreateMetaMagicType(generator_cls):
 
     class MetaMagicType(ABCMeta):
 
+        def __getitem__(cls, type_decl):
+            ret_cls = generator_cls(cls.main_cls)
+            ret_cls.partial_cls = type_decl
+            return ret_cls
+
         # fix unbound error of Python 2.x.
-        __getitem__ = cls.__dict__['__getitem__']
-        __instancecheck__ = cls.__dict__['__instancecheck__']
+        __instancecheck__ = generator_cls.__dict__['__instancecheck__']
 
         def __subclasscheck__(cls, sub):
             # corner case, sub isn't MagicType.
@@ -56,21 +60,11 @@ class MagicTypeGenerator(type):
         )
 
     # cls bound to real Magic type.
-    def __getitem__(cls, type_decl):
-        raise NotImplemented
-
-    # cls bound to real Magic type.
     def __instancecheck__(cls, ins):
         raise NotImplemented
 
 
 class SequenceGenerator(MagicTypeGenerator):
-
-    def __getitem__(cls, type_decl):
-
-        NestedSequence = SequenceGenerator(cls)
-        NestedSequence.partial_cls = type_decl
-        return NestedSequence
 
     def __instancecheck__(cls, ins):
         if not cls.__subclasscheck__(type(ins)):
@@ -83,4 +77,21 @@ class SequenceGenerator(MagicTypeGenerator):
         return True
 
 
+class ABCImmutableSequenceMeta(ABCMeta):
+
+    def __subclasscheck__(cls, sub):
+        if not issubclass(sub, abc.Sequence):
+            return False
+        return not issubclass(sub, abc.MutableSequence)
+
+    def __instancecheck__(cls, ins):
+        return cls.__subclasscheck__(type(ins))
+
+
+class ABCImmutableSequence(with_metaclass(ABCImmutableSequenceMeta, object)):
+    pass
+
+
 Sequence = SequenceGenerator(abc.Sequence)
+MutableSequence = SequenceGenerator(abc.MutableSequence)
+ImmutableSequence = SequenceGenerator(ABCImmutableSequence)
