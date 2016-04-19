@@ -5,12 +5,11 @@ from __future__ import (
 from builtins import *                  # noqa
 from future.builtins.disabled import *  # noqa
 from future.utils import with_metaclass
-from future.standard_library import hooks
 
 
-with hooks():
-    from abc import ABCMeta
-    import collections as abc
+from abc import ABCMeta
+# collections.abc dosn't esist in Python 2.x.
+import collections as abc
 
 
 class MagicTypeGenerator(type):
