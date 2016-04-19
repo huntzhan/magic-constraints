@@ -19,6 +19,12 @@ def CreateMetaMagicType(generator_cls):
     class MetaMagicType(ABCMeta):
 
         def __getitem__(cls, type_decl):
+            if generator_cls.disable_getitem:
+                raise SyntaxError
+            elif (generator_cls.disable_getitem_tuple and
+                  isinstance(type_decl, tuple)):
+                raise SyntaxError
+
             ret_cls = generator_cls(cls.main_cls)
             ret_cls.partial_cls = type_decl
             return ret_cls
@@ -54,6 +60,9 @@ def CreateMagicType(MetaMagicType, ABC):
 
 
 class MagicTypeGenerator(type):
+
+    disable_getitem = False
+    disable_getitem_tuple = False
 
     def __new__(cls, ABC):
         return CreateMagicType(
@@ -109,3 +118,42 @@ class ABCImmutableSequence(with_metaclass(ABCImmutableSequenceMeta, object)):
 Sequence = SequenceGenerator(abc.Sequence)
 MutableSequence = SequenceGenerator(abc.MutableSequence)
 ImmutableSequence = SequenceGenerator(ABCImmutableSequence)
+
+
+class SetGenerator(MagicTypeGenerator):
+
+    disable_getitem_tuple = True
+
+    def __instancecheck__(cls, ins):
+        if not cls.__subclasscheck__(type(ins)):
+            return False
+
+        if not cls.partial_cls:
+            return True
+
+        if type_object(cls.partial_cls):
+            for e in ins:
+                if not isinstance(e, cls.partial_cls):
+                    return False
+
+        return True
+
+
+class ABCImmutableSetMeta(ABCMeta):
+
+    def __subclasscheck__(cls, sub):
+        if not issubclass(sub, abc.Set):
+            return False
+        return not issubclass(sub, abc.MutableSet)
+
+    def __instancecheck__(cls, ins):
+        return cls.__subclasscheck__(type(ins))
+
+
+class ABCImmutableSet(with_metaclass(ABCImmutableSetMeta, object)):
+    pass
+
+
+Set = SetGenerator(abc.Set)
+MutableSet = SetGenerator(abc.MutableSet)
+ImmutableSet = SetGenerator(ABCImmutableSet)

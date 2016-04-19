@@ -5,6 +5,7 @@ from __future__ import (
 from builtins import *                  # noqa
 from future.builtins.disabled import *  # noqa
 
+import pytest
 from magic_parameter.types import *  # noqa
 
 
@@ -30,3 +31,19 @@ def test_sequence():
     assert not issubclass(Sequence, Sequence[int])
     assert not isinstance(Sequence[int], Sequence)
     assert not isinstance(Sequence, Sequence[int])
+
+
+def test_set():
+
+    assert isinstance({1, 2}, Set)
+    assert isinstance({1, 2}, MutableSet)
+    assert not isinstance({1, 2}, ImmutableSet)
+    assert isinstance(frozenset((1, 2)), ImmutableSet)
+
+    assert isinstance({1, 2}, Set[int])
+    assert not isinstance({1, 2.0}, Set[int])
+
+    with pytest.raises(SyntaxError):
+        Set[int, ]
+    with pytest.raises(SyntaxError):
+        Set[int, float]
