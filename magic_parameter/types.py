@@ -5,9 +5,12 @@ from __future__ import (
 from builtins import *                  # noqa
 from future.builtins.disabled import *  # noqa
 from future.utils import with_metaclass
+from future.standard_library import hooks
 
-from abc import ABCMeta
-import collections.abc as abc
+
+with hooks():
+    from abc import ABCMeta
+    import collections as abc
 
 
 class MagicTypeGenerator(type):
@@ -16,8 +19,9 @@ class MagicTypeGenerator(type):
 
         class GetItemHack(ABCMeta):
 
-            __getitem__ = cls.__getitem__
-            __instancecheck__ = cls.__instancecheck__
+            # fix unbound error of Python 2.x.
+            __getitem__ = cls.__dict__['__getitem__']
+            __instancecheck__ = cls.__dict__['__instancecheck__']
 
         class MagicType(with_metaclass(GetItemHack, object)):
 
