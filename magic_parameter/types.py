@@ -11,6 +11,8 @@ from abc import ABCMeta
 # collections.abc dosn't esist in Python 2.x.
 import collections as abc
 
+from magic_parameter.utils import type_object
+
 
 def CreateMetaMagicType(generator_cls):
 
@@ -69,11 +71,23 @@ class SequenceGenerator(MagicTypeGenerator):
     def __instancecheck__(cls, ins):
         if not cls.__subclasscheck__(type(ins)):
             return False
-        # is sequence.
-        if cls.partial_cls:
+
+        if not cls.partial_cls:
+            return True
+
+        if type_object(cls.partial_cls):
             for e in ins:
                 if not isinstance(e, cls.partial_cls):
                     return False
+        else:
+            if not isinstance(cls.partial_cls, tuple):
+                return False
+            if len(cls.partial_cls) != len(ins):
+                return False
+            for i in range(len(ins)):
+                if not isinstance(ins[i], cls.partial_cls[i]):
+                    return False
+
         return True
 
 

@@ -14,6 +14,10 @@ def test_sequence():
     assert isinstance((1, 2, 3), Sequence[int])
     assert not isinstance([1, 2.0, 3], Sequence[int])
 
+    assert isinstance([1, 2.0], Sequence[int, float])
+    assert not isinstance([1], Sequence[int, float])
+    assert not isinstance([1.0], Sequence[int, float])
+
     assert isinstance([], MutableSequence)
     assert isinstance([1, 2, 3], MutableSequence)
     assert not isinstance((1, 2, 3), MutableSequence)
