@@ -11,7 +11,7 @@ from abc import ABCMeta
 # collections.abc dosn't esist in Python 2.x.
 import collections as abc
 
-from magic_parameter.utils import type_object, nontype_object
+from magic_constraints.utils import type_object, nontype_object
 
 
 def unbound_getattr(target, name):

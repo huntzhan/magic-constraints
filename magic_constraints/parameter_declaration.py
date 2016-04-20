@@ -7,7 +7,7 @@ from future.builtins.disabled import *  # noqa
 
 from collections import namedtuple, Iterable
 
-from magic_parameter.type_declaration import type_decl_factory
+from magic_constraints.type_declaration import type_decl_factory
 
 
 class ParameterDecl(object):

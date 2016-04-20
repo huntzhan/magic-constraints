@@ -7,7 +7,7 @@ from future.builtins.disabled import *  # noqa
 
 import pytest
 
-from magic_parameter import *  # noqa
+from magic_constraints import *  # noqa
 
 
 def test_on_init():

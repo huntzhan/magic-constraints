@@ -4,7 +4,7 @@ from __future__ import (
 )
 
 
-NAME = 'magic_parameter'
+NAME = 'magic_constraints'
 VERSION = '0.2.0-rc-1'
 AUTHORS = [
     'huntzhan',

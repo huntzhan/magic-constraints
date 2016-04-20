@@ -12,7 +12,7 @@ from setuptools import setup, find_packages
 # load metadata.
 metadata = imp.load_source(
     'metadata',
-    os.path.join('magic_parameter', 'metadata.py'),
+    os.path.join('magic_constraints', 'metadata.py'),
 )
 
 

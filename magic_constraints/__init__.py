@@ -9,13 +9,13 @@ from builtins import *                  # noqa
 from future.builtins.disabled import *  # noqa
 
 
-from magic_parameter.decorator import (
+from magic_constraints.decorator import (
     function_parameter,
     method_parameter,
     method_init_parameter,
     class_init_parameter,
 )
-from magic_parameter.type_declaration import (
+from magic_constraints.type_declaration import (
     list_t,
     tuple_t,
     set_t,

@@ -6,7 +6,7 @@ from builtins import *                  # noqa
 from future.builtins.disabled import *  # noqa
 
 import pytest
-from magic_parameter import *  # noqa
+from magic_constraints import *  # noqa
 
 
 def test_function_parameter():

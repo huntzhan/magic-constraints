@@ -5,7 +5,7 @@ from __future__ import (
 from builtins import *                  # noqa
 from future.builtins.disabled import *  # noqa
 
-from magic_parameter.utils import type_object
+from magic_constraints.utils import type_object
 
 
 def list_t(raw_type):

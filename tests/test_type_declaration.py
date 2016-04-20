@@ -6,7 +6,7 @@ from builtins import *                  # noqa
 from future.builtins.disabled import *  # noqa
 
 import pytest
-from magic_parameter.type_declaration import *  # noqa
+from magic_constraints.type_declaration import *  # noqa
 
 
 class UserDefined(object):

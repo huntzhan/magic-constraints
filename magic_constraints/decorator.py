@@ -7,13 +7,13 @@ from future.builtins.disabled import *  # noqa
 
 import types
 
-from magic_parameter.parameter_declaration import (
+from magic_constraints.parameter_declaration import (
     build_parameters_decl_package,
 )
-from magic_parameter.argument_processing import (
+from magic_constraints.argument_processing import (
     transform_to_slots, bind_arguments,
 )
-from magic_parameter.utils import MagicArguments, nontype_object
+from magic_constraints.utils import MagicArguments, nontype_object
 
 
 class AttributesBinder(object):
