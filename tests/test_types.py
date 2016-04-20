@@ -135,3 +135,9 @@ def test_any():
     assert not issubclass(1.0, Any)
     assert issubclass(object, Any)
     assert issubclass(type, Any)
+
+
+def test_union():
+    assert isinstance(1, Union[int, float])
+    assert isinstance(1.0, Union[int, float])
+    assert not isinstance('str', Union[int, float])

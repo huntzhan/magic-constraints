@@ -42,6 +42,13 @@ def CreateMetaMagicType(generator_cls):
             if nontype_object(subclass):
                 return False
 
+            if unbound_getattr(generator_cls, '__subclasshook__'):
+                subclasshook = unbound_getattr(
+                    generator_cls, '__subclasshook__',
+                )
+                if not subclasshook(cls, subclass):
+                    return False
+
             # corner case, subclass isn't MagicType.
             if not hasattr(subclass, 'partial_cls'):
                 return issubclass(subclass, cls.main_cls)
@@ -234,6 +241,31 @@ class Any(with_metaclass(AnyMeta, object)):
     pass
 
 
+class UnionGenerator(MagicTypeGenerator):
+
+    def check_getitem_type_decl(type_decl):
+        if type_object(type_decl) or not isinstance(type_decl, tuple):
+            return False
+
+        for t in type_decl:
+            if nontype_object(t):
+                return False
+        else:
+            return True
+
+    def __subclasshook__(cls, subclass):
+        return cls.partial_cls is not None
+
+    def __instancecheck__(cls, instance):
+        if cls.partial_cls is None:
+            return False
+
+        for candidate_cls in cls.partial_cls:
+            if isinstance(instance, candidate_cls):
+                return True
+        return False
+
+
 ABCImmutableSequence = generate_immutable_abc(
     abc.Sequence, abc.MutableSequence,
 )
@@ -257,3 +289,5 @@ MutableMapping = MappingGenerator(abc.MutableMapping)
 ImmutableMapping = MappingGenerator(ABCImmutableMapping)
 
 Iterator = IteratorGenerator(abc.Iterator)
+
+Union = UnionGenerator(Any)
