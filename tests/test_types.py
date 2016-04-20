@@ -5,6 +5,7 @@ from __future__ import (
 from builtins import *                  # noqa
 from future.builtins.disabled import *  # noqa
 
+import sys
 import pytest
 from magic_parameter.types import *  # noqa
 
@@ -57,3 +58,49 @@ def test_set():
     assert issubclass(ImmutableSet, Set)
     assert not issubclass(MutableSet, ImmutableSet)
     assert not issubclass(ImmutableSet, MutableSet)
+
+
+def test_mapping():
+    assert isinstance({'a': 1}, Mapping)
+    assert isinstance({'a': 1}, MutableMapping)
+
+    assert isinstance({'a': 1}, Mapping[str, int])
+    assert not isinstance({'a': 1.0}, Mapping[str, int])
+    assert not isinstance({1: 1}, Mapping[str, int])
+
+    assert isinstance({'a': 1}, MutableMapping[str, int])
+    assert not isinstance({'a': 1.0}, MutableMapping[str, int])
+    assert not isinstance({1: 1}, MutableMapping[str, int])
+
+    with pytest.raises(SyntaxError):
+        Mapping[int]
+    with pytest.raises(SyntaxError):
+        Mapping[int, ]
+    with pytest.raises(SyntaxError):
+        Mapping[int, int, int]
+
+    assert issubclass(MutableMapping, Mapping)
+    assert issubclass(ImmutableMapping, Mapping)
+    assert not issubclass(MutableMapping, ImmutableMapping)
+    assert not issubclass(ImmutableMapping, MutableMapping)
+
+
+@pytest.mark.skipif(
+    sys.version_info < (3, 3),
+    reason="types.MappingProxyType new in 3.3",
+)
+def test_immutable_mapping():
+    from types import MappingProxyType as idict
+    assert isinstance(
+        idict({'a': 1}), ImmutableMapping,
+    )
+
+    assert isinstance(
+        idict({'a': 1}), Mapping[str, int],
+    )
+    assert not isinstance(
+        idict({'a': 1.0}), Mapping[str, int],
+    )
+    assert not isinstance(
+        idict({1: 1}), Mapping[str, int],
+    )

@@ -14,26 +14,29 @@ import collections as abc
 from magic_parameter.utils import type_object, nontype_object
 
 
+def unbound_getattr(target, name):
+    return target.__dict__.get(name, None)
+
+
 def CreateMetaMagicType(generator_cls):
 
     class MetaMagicType(ABCMeta):
 
         def __getitem__(cls, type_decl):
-            if generator_cls.disable_getitem:
+
+            type_decl_checker = unbound_getattr(
+                generator_cls,
+                'check_getitem_type_decl',
+            )
+            if type_decl_checker and not type_decl_checker(type_decl):
                 raise SyntaxError
-            if isinstance(type_decl, tuple):
-                if generator_cls.disable_getitem_tuple:
-                    raise SyntaxError
-                for t in type_decl:
-                    if nontype_object(t):
-                        raise SyntaxError
 
             ret_cls = generator_cls(cls.main_cls)
             ret_cls.partial_cls = type_decl
             return ret_cls
 
         # fix unbound error of Python 2.x.
-        __instancecheck__ = generator_cls.__dict__['__instancecheck__']
+        __instancecheck__ = unbound_getattr(generator_cls, '__instancecheck__')
 
         def __subclasscheck__(cls, sub):
             if nontype_object(sub):
@@ -77,92 +80,155 @@ class MagicTypeGenerator(type):
         )
 
     # cls bound to real Magic type.
-    def __instancecheck__(cls, ins):
+    def __instancecheck__(cls, instance):
         raise NotImplemented
+
+
+def check_type_of_instance(cls, instance):
+    return any(
+        issubclass(t, cls)
+        # handle old style class.
+        for t in (instance.__class__, type(instance))
+    )
+
+
+def generate_immutable_abc(supercls, mutable_subcls):
+
+    class ABCImmutableMeta(ABCMeta):
+
+        def __subclasscheck__(cls, sub):
+            if not issubclass(sub, supercls):
+                return False
+            return not issubclass(sub, mutable_subcls)
+
+        def __instancecheck__(cls, instance):
+            return cls.__subclasscheck__(type(instance))
+
+    class ABCImmutable(with_metaclass(ABCImmutableMeta, object)):
+        pass
+
+    # dirty hack to assert issubclass(ABCImmutable, supercls).
+    supercls._abc_cache.add(ABCImmutable)
+
+    return ABCImmutable
 
 
 class SequenceGenerator(MagicTypeGenerator):
 
-    def __instancecheck__(cls, ins):
-        if not cls.__subclasscheck__(type(ins)):
+    def check_getitem_type_decl(type_decl):
+        if type_object(type_decl):
+            return True
+
+        if isinstance(type_decl, tuple):
+            for t in type_decl:
+                if nontype_object(t):
+                    return False
+        return True
+
+    def __instancecheck__(cls, instance):
+        if not check_type_of_instance(cls, instance):
             return False
 
         if not cls.partial_cls:
             return True
 
         if type_object(cls.partial_cls):
-            for e in ins:
+            for e in instance:
                 if not isinstance(e, cls.partial_cls):
                     return False
         else:
             if not isinstance(cls.partial_cls, tuple):
                 return False
-            if len(cls.partial_cls) != len(ins):
+            if len(cls.partial_cls) != len(instance):
                 return False
-            for i in range(len(ins)):
-                if not isinstance(ins[i], cls.partial_cls[i]):
+            for i in range(len(instance)):
+                if not isinstance(instance[i], cls.partial_cls[i]):
                     return False
 
         return True
 
 
-class ABCImmutableSequenceMeta(ABCMeta):
-
-    def __subclasscheck__(cls, sub):
-        if not issubclass(sub, abc.Sequence):
-            return False
-        return not issubclass(sub, abc.MutableSequence)
-
-    def __instancecheck__(cls, ins):
-        return cls.__subclasscheck__(type(ins))
-
-
-class ABCImmutableSequence(
-        with_metaclass(ABCImmutableSequenceMeta, object)):
-    pass
+# class ABCImmutableSequenceMeta(ABCMeta):
+#
+#     def __subclasscheck__(cls, sub):
+#         if not issubclass(sub, abc.Sequence):
+#             return False
+#         return not issubclass(sub, abc.MutableSequence)
+#
+#     def __instancecheck__(cls, instance):
+#         return cls.__subclasscheck__(type(instance))
+#
+#
+# class ABCImmutableSequence(
+#         with_metaclass(ABCImmutableSequenceMeta, object)):
+#     pass
 
 
 class SetGenerator(MagicTypeGenerator):
 
-    disable_getitem_tuple = True
+    def check_getitem_type_decl(type_decl):
+        return type_object(type_decl)
 
-    def __instancecheck__(cls, ins):
-        if not cls.__subclasscheck__(type(ins)):
+    def __instancecheck__(cls, instance):
+        if not check_type_of_instance(cls, instance):
             return False
 
         if not cls.partial_cls:
             return True
 
         if type_object(cls.partial_cls):
-            for e in ins:
+            for e in instance:
                 if not isinstance(e, cls.partial_cls):
                     return False
 
         return True
 
 
-class ABCImmutableSetMeta(ABCMeta):
+# class ABCImmutableSetMeta(ABCMeta):
+#
+#     def __subclasscheck__(cls, sub):
+#         if not issubclass(sub, abc.Set):
+#             return False
+#         return not issubclass(sub, abc.MutableSet)
+#
+#     def __instancecheck__(cls, instance):
+#         return cls.__subclasscheck__(type(instance))
+#
+#
+# class ABCImmutableSet(with_metaclass(ABCImmutableSetMeta, object)):
+#     pass
 
-    def __subclasscheck__(cls, sub):
-        if not issubclass(sub, abc.Set):
+
+class MappingGenerator(MagicTypeGenerator):
+
+    def check_getitem_type_decl(type_decl):
+        if type_object(type_decl) or not isinstance(type_decl, tuple):
             return False
-        return not issubclass(sub, abc.MutableSet)
+        if len(type_decl) != 2:
+            return False
+        return type_object(type_decl[0]) and type_object(type_decl[1])
 
-    def __instancecheck__(cls, ins):
-        return cls.__subclasscheck__(type(ins))
+    def __instancecheck__(cls, instance):
+        if not check_type_of_instance(cls, instance):
+            return False
+
+        if cls.partial_cls:
+            key_cls, val_cls = cls.partial_cls
+            for key, val in instance.items():
+                if not (isinstance(key, key_cls) and isinstance(val, val_cls)):
+                    return False
+        return True
 
 
-class ABCImmutableSet(with_metaclass(ABCImmutableSetMeta, object)):
-    pass
-
-
-# dirty hack.
-def BindSuperclass(super_abc, sub_abc):
-    super_abc._abc_cache.add(sub_abc)
-
-
-BindSuperclass(abc.Sequence, ABCImmutableSequence)
-BindSuperclass(abc.Set, ABCImmutableSet)
+ABCImmutableSequence = generate_immutable_abc(
+    abc.Sequence, abc.MutableSequence,
+)
+ABCImmutableSet = generate_immutable_abc(
+    abc.Set, abc.MutableSet,
+)
+ABCImmutableMapping = generate_immutable_abc(
+    abc.Mapping, abc.MutableMapping,
+)
 
 Sequence = SequenceGenerator(abc.Sequence)
 MutableSequence = SequenceGenerator(abc.MutableSequence)
@@ -171,3 +237,7 @@ ImmutableSequence = SequenceGenerator(ABCImmutableSequence)
 Set = SetGenerator(abc.Set)
 MutableSet = SetGenerator(abc.MutableSet)
 ImmutableSet = SetGenerator(ABCImmutableSet)
+
+Mapping = MappingGenerator(abc.Mapping)
+MutableMapping = MappingGenerator(abc.MutableMapping)
+ImmutableMapping = MappingGenerator(ABCImmutableMapping)
