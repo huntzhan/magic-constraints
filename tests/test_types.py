@@ -104,3 +104,16 @@ def test_immutable_mapping():
     assert not isinstance(
         idict({1: 1}), Mapping[str, int],
     )
+
+
+def test_iterator():
+    assert isinstance(iter([1, 2]), Iterator)
+    assert not isinstance([1, 2], Iterator)
+
+    for _ in Iterator[int](iter([1, 2])):
+        pass
+    with pytest.raises(TypeError):
+        for _ in Iterator[int](iter([1, 2.0])):
+            pass
+    with pytest.raises(SyntaxError):
+        Iterator[int, int]

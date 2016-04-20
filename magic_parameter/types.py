@@ -58,12 +58,22 @@ def CreateMetaMagicType(generator_cls):
     return MetaMagicType
 
 
-def CreateMagicType(MetaMagicType, ABC):
+def CreateMagicType(generator_cls, MetaMagicType, ABC):
 
     class MagicType(with_metaclass(MetaMagicType, object)):
 
         main_cls = ABC
         partial_cls = None
+
+        for attr in [
+            '__new__',
+            '__init__',
+            # iterator.
+            '__iter__',
+            '__next__',
+        ]:
+            if unbound_getattr(generator_cls, attr):
+                locals()[attr] = unbound_getattr(generator_cls, attr)
 
     return MagicType
 
@@ -74,10 +84,8 @@ class MagicTypeGenerator(type):
     disable_getitem_tuple = False
 
     def __new__(cls, ABC):
-        return CreateMagicType(
-            CreateMetaMagicType(cls),
-            ABC,
-        )
+        MetaMagicType = CreateMetaMagicType(cls)
+        return CreateMagicType(cls, MetaMagicType, ABC)
 
     # cls bound to real Magic type.
     def __instancecheck__(cls, instance):
@@ -148,22 +156,6 @@ class SequenceGenerator(MagicTypeGenerator):
         return True
 
 
-# class ABCImmutableSequenceMeta(ABCMeta):
-#
-#     def __subclasscheck__(cls, sub):
-#         if not issubclass(sub, abc.Sequence):
-#             return False
-#         return not issubclass(sub, abc.MutableSequence)
-#
-#     def __instancecheck__(cls, instance):
-#         return cls.__subclasscheck__(type(instance))
-#
-#
-# class ABCImmutableSequence(
-#         with_metaclass(ABCImmutableSequenceMeta, object)):
-#     pass
-
-
 class SetGenerator(MagicTypeGenerator):
 
     def check_getitem_type_decl(type_decl):
@@ -182,21 +174,6 @@ class SetGenerator(MagicTypeGenerator):
                     return False
 
         return True
-
-
-# class ABCImmutableSetMeta(ABCMeta):
-#
-#     def __subclasscheck__(cls, sub):
-#         if not issubclass(sub, abc.Set):
-#             return False
-#         return not issubclass(sub, abc.MutableSet)
-#
-#     def __instancecheck__(cls, instance):
-#         return cls.__subclasscheck__(type(instance))
-#
-#
-# class ABCImmutableSet(with_metaclass(ABCImmutableSetMeta, object)):
-#     pass
 
 
 class MappingGenerator(MagicTypeGenerator):
@@ -220,6 +197,30 @@ class MappingGenerator(MagicTypeGenerator):
         return True
 
 
+class IteratorGenerator(MagicTypeGenerator):
+
+    def check_getitem_type_decl(type_decl):
+        return type_object(type_decl)
+
+    def __init__(self, iterator):
+        if not isinstance(iterator, abc.Iterator):
+            raise TypeError
+        self.iterator = iterator
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        element = next(self.iterator)
+        if isinstance(element, self.partial_cls):
+            return element
+        else:
+            raise TypeError
+
+    def __instancecheck__(cls, instance):
+        return check_type_of_instance(cls, instance)
+
+
 ABCImmutableSequence = generate_immutable_abc(
     abc.Sequence, abc.MutableSequence,
 )
@@ -241,3 +242,5 @@ ImmutableSet = SetGenerator(ABCImmutableSet)
 Mapping = MappingGenerator(abc.Mapping)
 MutableMapping = MappingGenerator(abc.MutableMapping)
 ImmutableMapping = MappingGenerator(ABCImmutableMapping)
+
+Iterator = IteratorGenerator(abc.Iterator)
