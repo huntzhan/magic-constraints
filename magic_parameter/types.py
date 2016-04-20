@@ -11,7 +11,7 @@ from abc import ABCMeta
 # collections.abc dosn't esist in Python 2.x.
 import collections as abc
 
-from magic_parameter.utils import type_object
+from magic_parameter.utils import type_object, nontype_object
 
 
 def CreateMetaMagicType(generator_cls):
@@ -21,9 +21,12 @@ def CreateMetaMagicType(generator_cls):
         def __getitem__(cls, type_decl):
             if generator_cls.disable_getitem:
                 raise SyntaxError
-            elif (generator_cls.disable_getitem_tuple and
-                  isinstance(type_decl, tuple)):
-                raise SyntaxError
+            if isinstance(type_decl, tuple):
+                if generator_cls.disable_getitem_tuple:
+                    raise SyntaxError
+                for t in type_decl:
+                    if nontype_object(t):
+                        raise SyntaxError
 
             ret_cls = generator_cls(cls.main_cls)
             ret_cls.partial_cls = type_decl
@@ -33,6 +36,9 @@ def CreateMetaMagicType(generator_cls):
         __instancecheck__ = generator_cls.__dict__['__instancecheck__']
 
         def __subclasscheck__(cls, sub):
+            if nontype_object(sub):
+                return False
+
             # corner case, sub isn't MagicType.
             if not hasattr(sub, 'partial_cls'):
                 return issubclass(sub, cls.main_cls)
@@ -111,13 +117,9 @@ class ABCImmutableSequenceMeta(ABCMeta):
         return cls.__subclasscheck__(type(ins))
 
 
-class ABCImmutableSequence(with_metaclass(ABCImmutableSequenceMeta, object)):
+class ABCImmutableSequence(
+        with_metaclass(ABCImmutableSequenceMeta, object)):
     pass
-
-
-Sequence = SequenceGenerator(abc.Sequence)
-MutableSequence = SequenceGenerator(abc.MutableSequence)
-ImmutableSequence = SequenceGenerator(ABCImmutableSequence)
 
 
 class SetGenerator(MagicTypeGenerator):
@@ -153,6 +155,18 @@ class ABCImmutableSetMeta(ABCMeta):
 class ABCImmutableSet(with_metaclass(ABCImmutableSetMeta, object)):
     pass
 
+
+# dirty hack.
+def BindSuperclass(super_abc, sub_abc):
+    super_abc._abc_cache.add(sub_abc)
+
+
+BindSuperclass(abc.Sequence, ABCImmutableSequence)
+BindSuperclass(abc.Set, ABCImmutableSet)
+
+Sequence = SequenceGenerator(abc.Sequence)
+MutableSequence = SequenceGenerator(abc.MutableSequence)
+ImmutableSequence = SequenceGenerator(ABCImmutableSequence)
 
 Set = SetGenerator(abc.Set)
 MutableSet = SetGenerator(abc.MutableSet)

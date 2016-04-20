@@ -32,6 +32,11 @@ def test_sequence():
     assert not isinstance(Sequence[int], Sequence)
     assert not isinstance(Sequence, Sequence[int])
 
+    assert issubclass(MutableSequence, Sequence)
+    assert issubclass(ImmutableSequence, Sequence)
+    assert not issubclass(MutableSequence, ImmutableSequence)
+    assert not issubclass(ImmutableSequence, MutableSequence)
+
 
 def test_set():
 
@@ -47,3 +52,8 @@ def test_set():
         Set[int, ]
     with pytest.raises(SyntaxError):
         Set[int, float]
+
+    assert issubclass(MutableSet, Set)
+    assert issubclass(ImmutableSet, Set)
+    assert not issubclass(MutableSet, ImmutableSet)
+    assert not issubclass(ImmutableSet, MutableSet)
