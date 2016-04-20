@@ -117,3 +117,21 @@ def test_iterator():
             pass
     with pytest.raises(SyntaxError):
         Iterator[int, int]
+
+    assert isinstance(
+        (i for i in range(10)),
+        Iterator,
+    )
+
+
+def test_any():
+
+    assert isinstance(1, Any)
+    assert isinstance(1.0, Any)
+    assert isinstance(object, Any)
+    assert isinstance(type, Any)
+
+    assert not issubclass(1, Any)
+    assert not issubclass(1.0, Any)
+    assert issubclass(object, Any)
+    assert issubclass(type, Any)

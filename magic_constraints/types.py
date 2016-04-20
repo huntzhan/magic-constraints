@@ -38,22 +38,22 @@ def CreateMetaMagicType(generator_cls):
         # fix unbound error of Python 2.x.
         __instancecheck__ = unbound_getattr(generator_cls, '__instancecheck__')
 
-        def __subclasscheck__(cls, sub):
-            if nontype_object(sub):
+        def __subclasscheck__(cls, subclass):
+            if nontype_object(subclass):
                 return False
 
-            # corner case, sub isn't MagicType.
-            if not hasattr(sub, 'partial_cls'):
-                return issubclass(sub, cls.main_cls)
+            # corner case, subclass isn't MagicType.
+            if not hasattr(subclass, 'partial_cls'):
+                return issubclass(subclass, cls.main_cls)
 
-            # sub is MagicType.
-            if cls.partial_cls or sub.partial_cls:
-                # if sub has partial_cls, return False.
+            # subclass is MagicType.
+            if cls.partial_cls or subclass.partial_cls:
+                # if subclass has partial_cls, return False.
                 return False
             else:
-                # 1. sub is normal type object.
-                # 2. sub is a MagicType.
-                return issubclass(sub.main_cls, cls.main_cls)
+                # 1. subclass is normal type object.
+                # 2. subclass is a MagicType.
+                return issubclass(subclass.main_cls, cls.main_cls)
 
     return MetaMagicType
 
@@ -100,14 +100,14 @@ def check_type_of_instance(cls, instance):
     )
 
 
-def generate_immutable_abc(supercls, mutable_subcls):
+def generate_immutable_abc(supercls, mutable_subclass):
 
     class ABCImmutableMeta(ABCMeta):
 
-        def __subclasscheck__(cls, sub):
-            if not issubclass(sub, supercls):
+        def __subclasscheck__(cls, subclass):
+            if not issubclass(subclass, supercls):
                 return False
-            return not issubclass(sub, mutable_subcls)
+            return not issubclass(subclass, mutable_subclass)
 
         def __instancecheck__(cls, instance):
             return cls.__subclasscheck__(type(instance))
@@ -219,6 +219,19 @@ class IteratorGenerator(MagicTypeGenerator):
 
     def __instancecheck__(cls, instance):
         return check_type_of_instance(cls, instance)
+
+
+class AnyMeta(ABCMeta):
+
+    def __instancecheck__(cls, instance):
+        return True
+
+    def __subclasscheck__(cls, subclass):
+        return type_object(subclass)
+
+
+class Any(with_metaclass(AnyMeta, object)):
+    pass
 
 
 ABCImmutableSequence = generate_immutable_abc(
