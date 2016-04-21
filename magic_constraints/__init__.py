@@ -9,30 +9,54 @@ from builtins import *                  # noqa
 from future.builtins.disabled import *  # noqa
 
 
-from magic_constraints.decorator import (
-    function_parameter,
-    method_parameter,
-    method_init_parameter,
-    class_init_parameter,
-)
-from magic_constraints.type_declaration import (
-    list_t,
-    tuple_t,
-    set_t,
-    dict_t,
-    or_t,
+from magic_constraints.parameter import Parameter
+
+from magic_constraints.decorators import (
+    function_constraints,
+    method_constraints,
+    class_initialization_constraints,
 )
 
+from magic_constraints.types import (
+    Sequence,
+    MutableSequence,
+    ImmutableSequence,
+
+    Set,
+    MutableSet,
+    ImmutableSet,
+
+    Mapping,
+    MutableMapping,
+    ImmutableMapping,
+
+    Iterator,
+
+    Any,
+    Union,
+)
 
 __all__ = [
-    'function_parameter',
-    'method_parameter',
-    'method_init_parameter',
-    'class_init_parameter',
+    'Parameter',
 
-    'list_t',
-    'tuple_t',
-    'set_t',
-    'dict_t',
-    'or_t',
+    'function_constraints',
+    'method_constraints',
+    'class_initialization_constraints',
+
+    'Sequence',
+    'MutableSequence',
+    'ImmutableSequence',
+
+    'Set',
+    'MutableSet',
+    'ImmutableSet',
+
+    'Mapping',
+    'MutableMapping',
+    'ImmutableMapping',
+
+    'Iterator',
+
+    'Any',
+    'Union',
 ]

@@ -6,13 +6,12 @@ from builtins import *                  # noqa
 from future.builtins.disabled import *  # noqa
 
 
-# pdp: parameter_decl_package
-def transform_to_slots(pdp, *args, **kwargs):
+def transform_to_slots(parameter_package, *args, **kwargs):
 
     class UnFill(object):
         pass
 
-    plen = len(pdp.parameter_decls)
+    plen = len(parameter_package.parameters)
 
     if len(args) > plen:
         raise TypeError
@@ -27,12 +26,12 @@ def transform_to_slots(pdp, *args, **kwargs):
 
     # 2. fill kwargs.
     for key, val in kwargs.items():
-        if key not in pdp.name_hash:
+        if key not in parameter_package.name_hash:
             raise TypeError(
                 'invalid key: {0}'.format(key),
             )
 
-        i = pdp.name_hash[key]
+        i = parameter_package.name_hash[key]
         if slots[i] is not UnFill:
             raise TypeError(
                 'reassign key: {0}'.format(key),
@@ -41,12 +40,12 @@ def transform_to_slots(pdp, *args, **kwargs):
         unfill_count -= 1
 
     # 3. fill defaults if not set.
-    for i in range(pdp.start_of_defaults, plen):
-        parameter_decl = pdp.parameter_decls[i]
-        j = pdp.name_hash[parameter_decl.name]
+    for i in range(parameter_package.start_of_defaults, plen):
+        parameter = parameter_package.parameters[i]
+        j = parameter_package.name_hash[parameter.name]
 
         if slots[j] is UnFill:
-            slots[j] = parameter_decl.default
+            slots[j] = parameter.default
             unfill_count -= 1
 
     # 4. test if slots contains UnFill.
@@ -58,14 +57,17 @@ def transform_to_slots(pdp, *args, **kwargs):
     return slots
 
 
-def bind_arguments(parameter_decls, slots, bind_callback):
+def check_and_bind_arguments(parameters, slots, bind_callback):
 
-    plen = len(parameter_decls)
+    plen = len(parameters)
 
     for i in range(plen):
         arg = slots[i]
-        pdcl = parameter_decls[i]
+        parameter = parameters[i]
         # check.
-        pdcl.check_argument(arg)
+        if not parameter.check_argument(arg):
+            raise TypeError(
+                '{0} cannot match {1}'.format(arg, parameter),
+            )
         # bind.
-        bind_callback(pdcl.name, arg)
+        bind_callback(parameter.name, arg)

@@ -12,7 +12,3 @@ def type_object(obj):
 
 def nontype_object(obj):
     return not type_object(obj)
-
-
-class MagicArguments(object):
-    pass
