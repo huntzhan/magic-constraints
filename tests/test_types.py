@@ -8,6 +8,7 @@ from future.builtins.disabled import *  # noqa
 import sys
 import pytest
 from magic_constraints.types import *  # noqa
+from magic_constraints.utils import *  # noqa
 
 
 def test_sequence():
@@ -141,3 +142,23 @@ def test_union():
     assert isinstance(1, Union[int, float])
     assert isinstance(1.0, Union[int, float])
     assert not isinstance('str', Union[int, float])
+
+
+@pytest.mark.xfail(
+    sys.version_info.major > 2,
+    reason="future problem.",
+)
+def test_repr_python2():
+    assert repr_return('Sequence') == repr(Sequence)
+    assert repr_return('Sequence[newint]') == repr(Sequence[int])
+    assert repr_return('Sequence[newint, float]') == repr(Sequence[int, float])
+
+
+@pytest.mark.xfail(
+    sys.version_info.major < 3,
+    reason="future problem.",
+)
+def test_repr_python3():
+    assert repr_return('Sequence') == repr(Sequence)
+    assert repr_return('Sequence[int]') == repr(Sequence[int])
+    assert repr_return('Sequence[int, float]') == repr(Sequence[int, float])

@@ -6,12 +6,11 @@ from builtins import *                  # noqa
 from future.builtins.disabled import *  # noqa
 from future.utils import with_metaclass
 
-
 from abc import ABCMeta
 # collections.abc dosn't esist in Python 2.x.
 import collections as abc
 
-from magic_constraints.utils import type_object, nontype_object
+from magic_constraints.utils import type_object, nontype_object, repr_return
 
 
 def unbound_getattr(target, name):
@@ -62,6 +61,31 @@ def CreateMetaMagicType(generator_cls):
                 # 2. subclass is a MagicType.
                 return issubclass(subclass.main_cls, cls.main_cls)
 
+        def __repr__(cls):
+
+            def conditional_repr(obj):
+                if isinstance(obj, ABCMeta) and hasattr(obj, 'main_cls'):
+                    return repr(obj)
+                else:
+                    return obj.__name__
+
+            name = conditional_repr(cls.main_cls)
+            if cls.partial_cls:
+                partial = ', '.join(
+                    map(
+                        conditional_repr,
+                        cls.partial_cls
+                        if isinstance(cls.partial_cls, tuple)
+                        else [cls.partial_cls],
+                    ),
+                )
+
+                name = '{0}[{1}]'.format(
+                    name, partial,
+                )
+
+            return repr_return(name)
+
     return MetaMagicType
 
 
@@ -86,9 +110,6 @@ def CreateMagicType(generator_cls, MetaMagicType, ABC):
 
 
 class MagicTypeGenerator(type):
-
-    disable_getitem = False
-    disable_getitem_tuple = False
 
     def __new__(cls, ABC):
         MetaMagicType = CreateMetaMagicType(cls)

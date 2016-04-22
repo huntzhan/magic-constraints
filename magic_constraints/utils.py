@@ -5,6 +5,7 @@ from __future__ import (
 from builtins import *                  # noqa
 from future.builtins.disabled import *  # noqa
 
+import sys
 import types
 from funcsigs import signature
 from funcsigs import Parameter as SigParameter
@@ -92,6 +93,12 @@ def build_parameters_by_function_inspection(type_args, function, fi):
         ti += 1
 
     return build_parameter_package(parameters)
+
+
+def repr_return(text):
+    if sys.version_info.major == 2:
+        text = text.encode('utf-8')
+    return text
 
 
 from magic_constraints.parameter import (
