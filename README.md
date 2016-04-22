@@ -1,4 +1,9 @@
-# magic-parameter [![Build Status](https://travis-ci.org/huntzhan/magic-parameter.svg?branch=master)](https://travis-ci.org/huntzhan/magic-parameter)
+# magic-parameter
+
+* master: [![Build
+  Status](https://travis-ci.org/huntzhan/magic-constraints.svg?branch=master)](https://travis-ci.org/huntzhan/magic-constraints)
+* develop: [![Build
+  Status](https://travis-ci.org/huntzhan/magic-constraints.svg?branch=develop)](https://travis-ci.org/huntzhan/magic-constraints)
 
 **WARNING: Interfaces of this project is UNSTABLE, might be changed in the future!**
 
