@@ -12,13 +12,15 @@ from magic_constraints import *  # noqa
 
 def test_on_init():
 
+    @class_initialization_constraints
     class Case(object):
 
-        @method_init_parameter([
-            ('a', int),
-            ('b', list),
-            ('c', list, [1, 2, 3]),
-        ])
+        INIT_PARAMETERS = [
+            Parameter('a', int),
+            Parameter('b', list),
+            Parameter('c', list, default=[1, 2, 3]),
+        ]
+
         def __init__(self):
             assert self.a == 42
             assert self.b
@@ -41,16 +43,13 @@ def test_on_init():
 
 def test_none():
 
+    @class_initialization_constraints
     class Case(object):
 
-        parameters = [
-            ('a', int, None),
-            ('b', list, None),
+        INIT_PARAMETERS = [
+            Parameter('a', int, nullable=True),
+            Parameter('b', list, nullable=True),
         ]
-
-        @method_init_parameter(parameters)
-        def __init__(self):
-            pass
 
     Case()
     Case(1)
@@ -61,22 +60,22 @@ def test_none():
 
 def test_on_typeobj():
 
-    @class_init_parameter
+    @class_initialization_constraints
     class Case1(object):
 
-        PARAMETERS = [
-            ('a', int),
+        INIT_PARAMETERS = [
+            Parameter('a', int),
         ]
 
     Case1(1)
     with pytest.raises(TypeError):
         Case1(1.0)
 
-    @class_init_parameter
+    @class_initialization_constraints
     class Case2(object):
 
-        PARAMETERS = [
-            ('a', int),
+        INIT_PARAMETERS = [
+            Parameter('a', int),
         ]
 
         def __init__(self):
@@ -90,11 +89,11 @@ def test_on_typeobj():
 
 def test_class_parameter():
 
-    @class_init_parameter
+    @class_initialization_constraints
     class Case1(object):
 
-        PARAMETERS = [
-            ('a', int),
+        INIT_PARAMETERS = [
+            Parameter('a', int),
         ]
 
     Case1(1)
@@ -102,11 +101,11 @@ def test_class_parameter():
     with pytest.raises(TypeError):
         Case1(b=1)
 
-    @class_init_parameter
+    @class_initialization_constraints
     class Case2(object):
 
-        PARAMETERS = [
-            ('a', int),
+        INIT_PARAMETERS = [
+            Parameter('a', int),
         ]
 
         def __init__(self):
@@ -120,11 +119,11 @@ def test_class_parameter():
 
 def test_nested_type():
 
-    @class_init_parameter
+    @class_initialization_constraints
     class Case(object):
 
-        PARAMETERS = [
-            ('a', or_t(list, tuple)),
+        INIT_PARAMETERS = [
+            Parameter('a', Union[list, tuple]),
         ]
 
     Case(
@@ -136,37 +135,37 @@ def test_nested_type():
     with pytest.raises(TypeError):
         Case(1)
 
-    with pytest.raises(TypeError):
+    with pytest.raises(SyntaxError):
 
-        @class_init_parameter
+        @class_initialization_constraints
         class Case1(object):
 
-            PARAMETERS = [
-                ('a', or_t(list, 1)),
+            INIT_PARAMETERS = [
+                Parameter('a', Union[list, 1]),
             ]
 
 
 def test_none_2():
 
-    @class_init_parameter
+    @class_initialization_constraints
     class Case1(object):
 
-        PARAMETERS = [
-            ('a', int, None),
+        INIT_PARAMETERS = [
+            Parameter('a', int, nullable=True),
         ]
 
-    @class_init_parameter
+    @class_initialization_constraints
     class Case2(object):
 
-        PARAMETERS = [
-            ('a', type(None)),
+        INIT_PARAMETERS = [
+            Parameter('a', type(None)),
         ]
 
-    @class_init_parameter
+    @class_initialization_constraints
     class Case3(object):
 
-        PARAMETERS = [
-            ('a', int),
+        INIT_PARAMETERS = [
+            Parameter('a', int),
         ]
 
     Case1()
@@ -179,34 +178,25 @@ def test_none_2():
 def test_corner_case():
 
     with pytest.raises(TypeError):
-        function_parameter([])(1)
+        function_constraints([])(1)
     with pytest.raises(TypeError):
-        function_parameter(1)(1)
-
-    with pytest.raises(TypeError):
-
-        @class_init_parameter
-        class Case1(object):
-
-            PARAMETERS = [
-                ('name',),
-            ]
+        function_constraints(1)(1)
 
     with pytest.raises(SyntaxError):
 
-        @class_init_parameter
+        @class_initialization_constraints
         class Case2(object):
 
-            PARAMETERS = [
-                ('duplicates', bool),
-                ('duplicates', bool),
+            INIT_PARAMETERS = [
+                Parameter('duplicates', bool),
+                Parameter('duplicates', bool),
             ]
 
-    @class_init_parameter
+    @class_initialization_constraints
     class Case3(object):
 
-        PARAMETERS = [
-            ('a', int),
+        INIT_PARAMETERS = [
+            Parameter('a', int),
         ]
 
     with pytest.raises(TypeError):
@@ -220,32 +210,32 @@ def test_corner_case():
 
     with pytest.raises(TypeError):
 
-        @class_init_parameter
+        @class_initialization_constraints
         class Case4(object):
 
-            PARAMETERS = [
-                ('a', 1),
+            INIT_PARAMETERS = [
+                Parameter('a', 1),
             ]
 
     with pytest.raises(SyntaxError):
 
-        @class_init_parameter
+        @class_initialization_constraints
         class Case5(object):
 
-            PARAMETERS = [
-                ('a', bool),
-                ('with_default', bool, None),
-                ('without_default', bool),
+            INIT_PARAMETERS = [
+                Parameter('a', bool),
+                Parameter('with_default', bool, default=None),
+                Parameter('without_default', bool),
             ]
 
 
-def test_nested_decl():
+def test_types():
 
-    @class_init_parameter
+    @class_initialization_constraints
     class Case1(object):
 
-        PARAMETERS = [
-            ('a', list_t(int)),
+        INIT_PARAMETERS = [
+            Parameter('a', MutableSequence[int]),
         ]
 
     Case1(
@@ -260,11 +250,11 @@ def test_nested_decl():
             (1, 2),
         )
 
-    @class_init_parameter
+    @class_initialization_constraints
     class Case2(object):
 
-        PARAMETERS = [
-            ('a', tuple_t(int)),
+        INIT_PARAMETERS = [
+            Parameter('a', ImmutableSequence[int]),
         ]
 
     Case2(
@@ -279,12 +269,18 @@ def test_nested_decl():
             [1, 2],
         )
 
-    @class_init_parameter
+    @class_initialization_constraints
     class Case3(object):
 
-        PARAMETERS = [
-            ('a', or_t(list_t(int), tuple_t(int)), None),
-            ('b', list_t(or_t(int, float)), None),
+        INIT_PARAMETERS = [
+            Parameter(
+                'a', Sequence[int],
+                nullable=True, default=None,
+            ),
+            Parameter(
+                'b', MutableSequence[Union[int, float]],
+                nullable=True, default=None,
+            ),
         ]
 
     Case3(

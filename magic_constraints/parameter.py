@@ -12,6 +12,8 @@ class Parameter(object):
 
     def __init__(self, name, type_, **kwargs):
         self.name = name
+
+        raise_on_nontype_object(type_)
         self.type_ = type_
 
         # key only arguemnt.
@@ -31,7 +33,7 @@ class Parameter(object):
 
     def check_argument(self, instance):
         if instance is None:
-            if not self.nullable:
+            if not (self.nullable or issubclass(self.type_, type(None))):
                 return False
             else:
                 return self.callback(None)
@@ -57,7 +59,7 @@ def build_parameter_package(parameters):
             )
 
         if parameter.name in name_hash:
-            raise SyntaxError('duplicates on ' + name)
+            raise SyntaxError('duplicates on ' + parameter.name)
 
         name_hash[parameter.name] = idx
 
@@ -81,3 +83,8 @@ def build_parameter_package(parameters):
     return ParameterPackage(
         parameters, name_hash, start_of_defaults,
     )
+
+
+from magic_constraints.utils import (
+    raise_on_nontype_object,
+)  # noqa

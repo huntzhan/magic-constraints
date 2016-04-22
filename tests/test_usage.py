@@ -111,5 +111,5 @@ def test_class_initialization_constraints():
     Case2(1)
     Case2(a=1)
 
-    with pytest.raises(SyntaxError):
+    with pytest.raises(TypeError):
         class_initialization_constraints(1)

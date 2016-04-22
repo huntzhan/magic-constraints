@@ -5,86 +5,20 @@ from __future__ import (
 from builtins import *                  # noqa
 from future.builtins.disabled import *  # noqa
 
-import types
-from funcsigs import signature
-from funcsigs import Parameter as SigParameter
-
 from magic_constraints.parameter import (
-    Parameter, build_parameter_package,
+    build_parameter_package,
 )
 from magic_constraints.argument import (
     transform_to_slots, check_and_bind_arguments,
 )
-from magic_constraints.utils import nontype_object
-
-
-class CompoundArgument(object):
-    pass
-
-
-class AttributesBinder(object):
-
-    def __init__(self, obj):
-        self.obj = obj
-
-    def __call__(self, attr, val):
-        setattr(self.obj, attr, val)
-
-
-def raise_on_non_function(function):
-    if not isinstance(function, types.FunctionType):
-        raise TypeError(
-            '{0} should be FunctionType.'.format(function),
-        )
-
-
-def raise_on_non_parameters(parameters):
-    for p in parameters:
-        if isinstance(p, Parameter):
-            continue
-        else:
-            raise SyntaxError(
-                '{0} is not the instance of Parameter.'.format(p),
-            )
-
-
-def build_parameters_by_function_inspection(type_args, function, fi):
-    argument_sigs = signature(function)
-
-    if len(argument_sigs.parameters) - fi != len(type_args):
-        raise SyntaxError(
-            'length of arguments not match.',
-        )
-
-    parameters = []
-    ti = 0
-    for name, sig_parameter in argument_sigs.parameters.items():
-        if fi > 0:
-            fi -= 1
-            continue
-
-        if sig_parameter.kind not in [
-            SigParameter.POSITIONAL_ONLY,
-            SigParameter.POSITIONAL_OR_KEYWORD
-        ]:
-            raise SyntaxError(
-                'not support argument [{0}] with the kind of [{1}].'.format(
-                    name, SigParameter.kind,
-                ),
-            )
-
-        if sig_parameter.default is sig_parameter.empty:
-            # no default.
-            parameters.append(
-                Parameter(name, type_args[ti]),
-            )
-        else:
-            parameters.append(
-                Parameter(name, type_args[ti], default=sig_parameter.default),
-            )
-        ti += 1
-
-    return build_parameter_package(parameters)
+from magic_constraints.utils import (
+    CompoundArgument,
+    AttributesBinder,
+    raise_on_non_function,
+    raise_on_non_parameters,
+    raise_on_nontype_object,
+    build_parameters_by_function_inspection,
+)
 
 
 # @function_constraints(
@@ -237,11 +171,7 @@ def method_constraints(*args, **options):
 #         Parameter('bar', float, default=1.0),
 #     ]
 def class_initialization_constraints(user_defined_class):
-
-    if nontype_object(user_defined_class):
-        raise SyntaxError(
-            '{0} is not a class.'.format(user_defined_class),
-        )
+    raise_on_nontype_object(user_defined_class)
 
     parameters = getattr(user_defined_class, 'INIT_PARAMETERS', None)
     raise_on_non_parameters(parameters)
