@@ -318,6 +318,9 @@ Signature of Parameter: `Parameter(name, type_, nullable=False, default=None, ca
 `method_constraints` is almost identical to `function_constraints`, except that `method_constraints` decorates [method][14] instead of [function][15]. Make sure you understand what the method is. Here's a example of usage:
 
 ```python
+from magic_constraints import method_constraints, Parameter
+
+
 class Example(object):
 
     @classmethod
@@ -342,3 +345,22 @@ class Example(object):
 [15]: https://docs.python.org/3/glossary.html#term-function
 
 ### `class_initialization_constraints`
+
+`class_initialization_constraints` is a class decorator requires a class with `INIT_PARAMETERS` attribute. `INIT_PARAMETERS` should be a sequence of `Parameter` instances. After decoration, `class_initialization_constraints` will inject a `__init__` for argument processing. Similar to `pass_by_compound=True`, accepted arguments will be bound to `self`. User-defined `__init__`, within the decorated class or the superclass, will be invoked with single argument `self`. As a consequence, user-defined `__init__` should not define any argument except `self`.
+
+Example:
+
+```python
+from magic_constraints import class_initialization_constraints, Parameter
+
+
+@class_initialization_constraints
+class Example(object):
+                                  
+    INIT_PARAMETERS = [
+        Parameter('a', int),
+    ]
+                                  
+    def __init__(self):
+        assert self.a == 1
+```
