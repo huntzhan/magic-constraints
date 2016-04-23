@@ -178,6 +178,9 @@ def test_any():
     assert issubclass(object, Any)
     assert issubclass(type, Any)
 
+    assert issubclass(Sequence, Any)
+    assert issubclass(Union, Any)
+
 
 def test_union():
     assert not isinstance(1, Union)
@@ -186,6 +189,9 @@ def test_union():
     assert isinstance(1, Union[int, float])
     assert isinstance(1.0, Union[int, float])
     assert not isinstance('str', Union[int, float])
+
+    assert not issubclass(str, Union)
+    assert not issubclass(str, Union[int, float])
 
     with pytest.raises(TypeError):
         Union[1]

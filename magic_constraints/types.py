@@ -307,7 +307,7 @@ class UnionGenerator(MagicTypeGenerator):
             return True
 
     def __subclasshook__(cls, subclass):
-        return cls.partial_cls is not None
+        return False
 
     def __instancecheck__(cls, instance):
         if cls.partial_cls is None:
