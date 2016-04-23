@@ -30,7 +30,8 @@ class MagicErrorMixin(Exception):
         ))
 
         return repr_return(
-            '{title}\n{sep_line}\n{kv_lines}\n{sep_line}'.format(
+            # prefix \n for traceback display.
+            '\n{title}\n{sep_line}\n{kv_lines}\n{sep_line}'.format(
                 title=title,
                 kv_lines=kv_lines or '[Empty kwargs]',
                 sep_line=sep_line,

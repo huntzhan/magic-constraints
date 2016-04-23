@@ -36,6 +36,7 @@ def test_repr_and_str():
 
     assert (
         repr_return(
+            "\n"
             "MagicSyntaxError: [Empty Message]\n"
             "---------------------------------\n"
             "[Empty kwargs]\n"
@@ -46,6 +47,7 @@ def test_repr_and_str():
 
     assert (
         repr_return(
+            "\n"
             "MagicSyntaxError: msg\n"
             "---------------------\n"
             "[Empty kwargs]\n"
@@ -56,6 +58,7 @@ def test_repr_and_str():
 
     assert (
         repr_return(
+            "\n"
             "MagicSyntaxError: msg\n"
             "---------------------\n"
             "a: 2\n"
