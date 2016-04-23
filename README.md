@@ -197,7 +197,7 @@ speical  ::=    Any
               | Union             [ type, ... ]
 ```
 
-Explanations.
+Explanations are as follow.
 
 `type` means type object in Python. `abc` defines several supported ABCs. `speical` defines some type objects for some spectial purposes.
 
@@ -230,7 +230,7 @@ Explanations.
 
 `iterator`:
 
-* `Iterable` is equivalent to [collections.abc.Iterator][11].
+* `Iterator` is equivalent to [collections.abc.Iterator][11].
 * Dual to the side effect of iterating the iterator, `isinstance(instance, Iterator[ type ])` and `isinstance(instance, Iterator[ type, ... ])` always return `False`.
 * `Iterator[ type ](iterator)` and `Iterator[ type, ... ](iterator)` creates a iterator proxy with lazy type instrospection on the elements. Example:
 	
@@ -256,6 +256,60 @@ Explanations.
 
 ## `magic_constrains.decorator`
 
-* `function_constraints`,
-* `method_constraints`,
-* `class_initialization_constraints`,
+`magic_constrains` provides following decorators for parameter declaration:
+
+* `function_constraints`
+* `method_constraints`
+* `class_initialization_constraints`
+
+### `function_constraints`
+
+`function_constraints` supports two forms of invacations:
+
+1. `function_constraints(<type object>, ...)`
+2. `function_constraints(Parameter(name, <type object>, nullable=False, default=None), ..., pass_by_compound=True)`
+
+Example:
+
+```python
+@function_constraints(
+    int, float, int, str,
+)
+def form1(a, b, c=42, d=None):
+    return a, b, c, d
+
+
+@function_constraints(
+    Parameter('a', int),
+    Parameter('b', float),
+    Parameter('c', int, default=42),
+    Parameter('d', str, nullable=True, default=None),
+    pass_by_compound=True,
+)
+def form2(args):
+    return args.a, args.b, args.c, args.d
+```
+
+`form1` of `function_constraints` accepts `n` type objects, `n` equals to the number of parameters of the function decorated by `function_constraints`. There are some several promises on the form of parameter:
+
+* only the `POSITIONAL_ONLY` or `POSITIONAL_OR_KEYWORD` parameters are accepted, see [inspect.Parameter.kind][12] for more information.
+* parameter without default value is treated as non-`nullable` and without `default`. This concepts will be introduced in the field of `Parameter`.
+* parameter with default value other than `None` is treated as non-`nullable` and with `default` bound to such value.
+* parameter with `None` as its default value is treated as `nullable` and with `default` bound to `None`.
+
+`form2` is enable by passing the keyword-only argument `pass_by_compound=True` to `function_constraints`. `form2` accepts arbitrary number of `Parameter` instances. After checking the input arguments in runtime, thoses arguments will be bound to a single object as its attributes. Hence, in this cases user-defined function, that is, the one decorated by `function_constraints` should define only one `POSITIONAL_ONLY` argument.
+
+Signature of Parameter: `Parameter(name, type_, nullable=False, default=None, callback=None)`. Explanation:
+
+* `name` is name of parameter. `name` must follows [the rule of defining identifier][13] of Python.
+* `type_` defines the type of accepted instances, should be a type object.
+* (optional) `nullable=True` means the parameter can accept `None` as its value, independent of `type_`. If omitted, `nullable=False`.
+* (optional) `default` defines the default value of parameter. If omitted and there is no argument could be bound to the parameter in the runtime, `MagicSyntaxError` will be raised.
+* (optional) `callback` accepts a callable that with single positional argument and returns a boolean value. If defined, `callback` will be invoked after the type introspection. If `callback` returns `False`, `MagicTypeError` will be raised.
+
+[12]: https://docs.python.org/3.5/library/inspect.html#inspect.Parameter.kind
+[13]: https://docs.python.org/2/reference/lexical_analysis.html#identifiers
+
+### `method_constraints`
+
+### `class_initialization_constraints`
