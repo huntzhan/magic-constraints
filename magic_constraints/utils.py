@@ -96,15 +96,21 @@ def build_parameters_by_function_inspection(type_args, function, fi):
                 kine=SigParameter.kind,
             )
 
-        if sig_parameter.default is sig_parameter.empty:
+        default_value = sig_parameter.default
+        if default_value is sig_parameter.empty:
             # no default.
             parameters.append(
                 Parameter(name, type_args[ti]),
             )
+        elif default_value is None:
+            parameters.append(
+                Parameter(name, type_args[ti], nullable=True, default=None),
+            )
         else:
             parameters.append(
-                Parameter(name, type_args[ti], default=sig_parameter.default),
+                Parameter(name, type_args[ti], default=default_value),
             )
+
         ti += 1
 
     return build_parameter_package(parameters)

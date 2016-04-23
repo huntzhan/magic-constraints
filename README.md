@@ -17,6 +17,12 @@
 
 ## Quick Start
 
+### Install
+
+```
+pip install magic-constraints
+```
+
 ### Abstract Base Classes Inspection:
 
 `magic-constraints` implemented a few ABCs for type introspection.
@@ -139,7 +145,6 @@ argument: 42
 parameter: Parameter(name='bar', type_=Sequence[int], default=[1, 2, 3], nullable=True)
 -----------------------------------
 ```
-
 
 ## `magic_constrains.types`
 

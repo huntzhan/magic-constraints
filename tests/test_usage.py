@@ -36,12 +36,13 @@ def test_function_constraints_pass_by_compound():
 def test_function_constraints_pass_by_positional():
 
     @function_constraints(
-        int, float, int,
+        int, float, int, int,
     )
-    def example(a, b, c=42):
+    def example(a, b, c=42, d=None):
         assert a == 1
         assert b == 1.0
         assert c == 42
+        assert d is None
 
     example(1, 1.0)
     example(b=1.0, a=1)
@@ -51,6 +52,10 @@ def test_function_constraints_pass_by_positional():
     example(1, 1.0, 42)
     with pytest.raises(AssertionError):
         example(2, 1.0, 43)
+
+    example(1, 1.0, 42, None)
+    with pytest.raises(AssertionError):
+        example(1, 1.0, 42, d=42)
 
     with pytest.raises(SyntaxError):
         example(1)
