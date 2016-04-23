@@ -31,6 +31,7 @@ from magic_constraints.types import (
     ImmutableMapping,
 
     Iterator,
+    Iterable,
 
     Any,
     Union,
@@ -56,6 +57,7 @@ __all__ = [
     'ImmutableMapping',
 
     'Iterator',
+    'Iterable',
 
     'Any',
     'Union',

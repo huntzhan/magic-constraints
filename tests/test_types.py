@@ -7,8 +7,10 @@ from future.builtins.disabled import *  # noqa
 
 import sys
 import pytest
-from magic_constraints.types import *  # noqa
-from magic_constraints.utils import *  # noqa
+from magic_constraints import *  # noqa
+from magic_constraints.utils import (
+    repr_return,
+)
 
 
 def test_sequence():
