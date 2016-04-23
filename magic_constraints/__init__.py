@@ -15,7 +15,7 @@ from magic_constraints.exception import (
 
 from magic_constraints.parameter import Parameter
 
-from magic_constraints.decorators import (
+from magic_constraints.decorator import (
     function_constraints,
     method_constraints,
     class_initialization_constraints,
