@@ -7,6 +7,8 @@ from future.builtins.disabled import *  # noqa
 
 import sys
 import types
+from abc import ABCMeta
+
 from funcsigs import signature
 from funcsigs import Parameter as SigParameter
 
@@ -99,6 +101,15 @@ def repr_return(text):
     if sys.version_info.major == 2:
         text = text.encode('utf-8')
     return text
+
+
+def conditional_repr(obj):
+    if isinstance(obj, ABCMeta) and hasattr(obj, 'main_cls'):
+        return repr(obj)
+    elif type_object(obj):
+        return obj.__name__
+    else:
+        return repr(obj)
 
 
 from magic_constraints.parameter import (

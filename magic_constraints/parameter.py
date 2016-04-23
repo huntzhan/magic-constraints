@@ -31,6 +31,10 @@ class Parameter(object):
             'callback', lambda instance: True,
         )
 
+        self._arguments_repr = self._generate_init_arguments_repr(
+            name, type_, **kwargs
+        )
+
     def check_argument(self, instance):
         if instance is None:
             if not (self.nullable or issubclass(self.type_, type(None))):
@@ -40,6 +44,31 @@ class Parameter(object):
         if not isinstance(instance, self.type_):
             return False
         return self.callback(instance)
+
+    def _generate_init_arguments_repr(self, name, type_, **kwargs):
+        # positional arguments.
+        prefix = "name={name}, type_={type_}".format(
+            name=conditional_repr(name),
+            type_=conditional_repr(type_),
+        )
+        # keyword-only arguments.
+        suffix = ', '.join(map(
+            lambda p: "{0}={1}".format(p[0], conditional_repr(p[1])),
+            sorted(kwargs.items(), key=lambda p: p[0]),
+        ))
+
+        # merge.
+        if suffix:
+            arguemnt_repr = "{0}, {1}".format(prefix, suffix)
+        else:
+            arguemnt_repr = prefix
+
+        return arguemnt_repr
+
+    def __repr__(self):
+        return repr_return(
+            'Parameter({})'.format(self._arguments_repr),
+        )
 
 
 def build_parameter_package(parameters):
@@ -87,4 +116,5 @@ def build_parameter_package(parameters):
 
 from magic_constraints.utils import (
     raise_on_nontype_object,
+    repr_return, conditional_repr,
 )  # noqa

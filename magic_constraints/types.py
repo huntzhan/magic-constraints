@@ -10,7 +10,10 @@ from abc import ABCMeta
 # collections.abc dosn't esist in Python 2.x.
 import collections as abc
 
-from magic_constraints.utils import type_object, nontype_object, repr_return
+from magic_constraints.utils import (
+    type_object, nontype_object,
+    repr_return, conditional_repr,
+)
 
 
 def unbound_getattr(target, name):
@@ -62,12 +65,6 @@ def CreateMetaMagicType(generator_cls):
                 return issubclass(subclass.main_cls, cls.main_cls)
 
         def __repr__(cls):
-
-            def conditional_repr(obj):
-                if isinstance(obj, ABCMeta) and hasattr(obj, 'main_cls'):
-                    return repr(obj)
-                else:
-                    return obj.__name__
 
             name = conditional_repr(cls.main_cls)
             if cls.partial_cls:
