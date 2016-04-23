@@ -20,6 +20,7 @@ def test_sequence():
     assert not isinstance([1, 2.0, 3], Sequence[int])
 
     assert isinstance([1, 2.0], Sequence[int, float])
+    assert not isinstance([1, 2], Sequence[int, float])
     assert not isinstance([1], Sequence[int, float])
     assert not isinstance([1.0], Sequence[int, float])
 
@@ -40,6 +41,12 @@ def test_sequence():
     assert issubclass(ImmutableSequence, Sequence)
     assert not issubclass(MutableSequence, ImmutableSequence)
     assert not issubclass(ImmutableSequence, MutableSequence)
+
+    with pytest.raises(TypeError):
+        Sequence[int, 1]
+
+    with pytest.raises(TypeError):
+        Sequence[[int, int]]
 
 
 def test_set():
@@ -74,6 +81,8 @@ def test_mapping():
     assert isinstance({'a': 1}, MutableMapping[str, int])
     assert not isinstance({'a': 1.0}, MutableMapping[str, int])
     assert not isinstance({1: 1}, MutableMapping[str, int])
+
+    assert not isinstance(1, Mapping)
 
     with pytest.raises(TypeError):
         Mapping[int]
@@ -115,6 +124,12 @@ def test_iterator():
 
     for _ in Iterator[int](iter([1, 2])):
         pass
+
+    with pytest.raises(TypeError):
+        Iterator([1, 2])
+    with pytest.raises(TypeError):
+        Iterator[int]([1, 2])
+
     with pytest.raises(TypeError):
         for _ in Iterator[int](iter([1, 2.0])):
             pass
@@ -133,6 +148,12 @@ def test_iterable():
 
     for _ in Iterable[int]([1, 2]):
         pass
+
+    with pytest.raises(TypeError):
+        Iterable(1)
+    with pytest.raises(TypeError):
+        Iterable[int](1)
+
     with pytest.raises(TypeError):
         for _ in Iterable[int]([1, 2.0]):
             pass
@@ -159,9 +180,15 @@ def test_any():
 
 
 def test_union():
+    assert not isinstance(1, Union)
+    assert not issubclass(int, Union)
+
     assert isinstance(1, Union[int, float])
     assert isinstance(1.0, Union[int, float])
     assert not isinstance('str', Union[int, float])
+
+    with pytest.raises(TypeError):
+        Union[1]
 
 
 @pytest.mark.xfail(
@@ -182,3 +209,9 @@ def test_repr_python3():
     assert repr_return('Sequence') == repr(Sequence)
     assert repr_return('Sequence[int]') == repr(Sequence[int])
     assert repr_return('Sequence[int, float]') == repr(Sequence[int, float])
+
+
+def test_corner_cases():
+    assert not issubclass(1, Sequence)
+    assert not issubclass(int, ImmutableSequence)
+    assert not isinstance(int, ImmutableSequence)

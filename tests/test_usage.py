@@ -36,16 +36,21 @@ def test_function_constraints_pass_by_compound():
 def test_function_constraints_pass_by_positional():
 
     @function_constraints(
-        int, float,
+        int, float, int,
     )
-    def example(a, b):
+    def example(a, b, c=42):
         assert a == 1
         assert b == 1.0
+        assert c == 42
 
     example(1, 1.0)
     example(b=1.0, a=1)
     with pytest.raises(AssertionError):
         example(2, 1.0)
+
+    example(1, 1.0, 42)
+    with pytest.raises(AssertionError):
+        example(2, 1.0, 43)
 
     with pytest.raises(SyntaxError):
         example(1)
@@ -53,6 +58,9 @@ def test_function_constraints_pass_by_positional():
         example(1.0)
     with pytest.raises(SyntaxError):
         example(1, a=1)
+
+    with pytest.raises(SyntaxError):
+        function_constraints()
 
 
 def test_method_constraints():
@@ -82,6 +90,9 @@ def test_method_constraints():
     case1.test_self(1)
     with pytest.raises(AssertionError):
         case1.test_self(2)
+
+    with pytest.raises(SyntaxError):
+        method_constraints()
 
 
 def test_class_initialization_constraints():
@@ -113,3 +124,34 @@ def test_class_initialization_constraints():
 
     with pytest.raises(TypeError):
         class_initialization_constraints(1)
+
+
+def test_corner_cases():
+
+    with pytest.raises(TypeError):
+        @function_constraints(
+            list(),
+            pass_by_compound=True,
+        )
+        def example(args):
+            pass
+
+    with pytest.raises(TypeError):
+        @class_initialization_constraints
+        class Case2(object):
+
+            INIT_PARAMETERS = 42
+
+    with pytest.raises(SyntaxError):
+        @function_constraints(
+            int, float,
+        )
+        def func1(a):
+            pass
+
+    with pytest.raises(SyntaxError):
+        @function_constraints(
+            int, float,
+        )
+        def func2(a, *, b):
+            pass

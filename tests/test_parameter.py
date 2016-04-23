@@ -19,6 +19,13 @@ pytestmark = pytest.mark.skipif(
 )
 
 
+def test_callback():
+    p = Parameter('a', int, callback=lambda n: n == 42)
+    assert p.check_argument(42)
+    assert not p.check_argument(0)
+    assert not p.check_argument('test')
+
+
 def test_repr():
     assert (
         repr_return("Parameter(name='a', type_=Sequence[int])") ==

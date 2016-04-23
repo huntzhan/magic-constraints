@@ -116,10 +116,6 @@ class MagicTypeGenerator(type):
         MetaMagicType = CreateMetaMagicType(cls)
         return CreateMagicType(cls, MetaMagicType, ABC)
 
-    # cls bound to real Magic type.
-    def __instancecheck__(cls, instance):
-        raise NotImplemented
-
 
 def check_type_of_instance(cls, instance):
     return any(
@@ -137,9 +133,6 @@ def generate_immutable_abc(supercls, mutable_subclass):
             if not issubclass(subclass, supercls):
                 return False
             return not issubclass(subclass, mutable_subclass)
-
-        def __instancecheck__(cls, instance):
-            return cls.__subclasscheck__(type(instance))
 
     class ABCImmutable(with_metaclass(ABCImmutableMeta, object)):
         pass
@@ -160,7 +153,9 @@ class SequenceGenerator(MagicTypeGenerator):
             for t in type_decl:
                 if nontype_object(t):
                     return False
-        return True
+            return True
+        else:
+            return False
 
     def __instancecheck__(cls, instance):
         if not check_type_of_instance(cls, instance):
@@ -174,8 +169,6 @@ class SequenceGenerator(MagicTypeGenerator):
                 if not isinstance(e, cls.partial_cls):
                     return False
         else:
-            if not isinstance(cls.partial_cls, tuple):
-                return False
             if len(cls.partial_cls) != len(instance):
                 return False
             for i in range(len(instance)):
@@ -232,11 +225,16 @@ class IteratorGenerator(MagicTypeGenerator):
         return type_object(type_decl)
 
     def __init__(self, iterator):
+        if self.partial_cls is None:
+            raise MagicTypeError(
+                'require T on Iterator[T].'
+            )
         if not isinstance(iterator, abc.Iterator):
             raise MagicTypeError(
                 'require Iterator.',
                 iterator=iterator,
             )
+
         self.iterator = iterator
 
     def __iter__(self):
@@ -263,6 +261,10 @@ class IterableGenerator(MagicTypeGenerator):
         return type_object(type_decl)
 
     def __init__(self, iterable):
+        if self.partial_cls is None:
+            raise MagicTypeError(
+                'require T on Iterable[T].'
+            )
         if not isinstance(iterable, abc.Iterable):
             raise MagicTypeError(
                 'require Iterable.',

@@ -111,7 +111,7 @@ def build_parameters_by_function_inspection(type_args, function, fi):
 
 
 def repr_return(text):
-    if sys.version_info.major == 2:
+    if sys.version_info.major == 2:  # pragma: no cover
         text = text.encode('utf-8')
     return text
 
