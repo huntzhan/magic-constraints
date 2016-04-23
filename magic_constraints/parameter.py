@@ -5,7 +5,9 @@ from __future__ import (
 from builtins import *                  # noqa
 from future.builtins.disabled import *  # noqa
 
-from collections import namedtuple, Iterable
+from collections import namedtuple
+
+from magic_constraints.exception import MagicSyntaxError
 
 
 class Parameter(object):
@@ -72,23 +74,19 @@ class Parameter(object):
 
 
 def build_parameter_package(parameters):
-    if not isinstance(parameters, Iterable):
-        raise TypeError(
-            'parameter should be Iterable.',
-        )
+    raise_on_non_parameters(parameters)
 
     name_hash = {}
     start_of_defaults = -1
 
     idx = 0
     for parameter in parameters:
-        if not isinstance(parameter, Parameter):
-            raise SyntaxError(
-                'parameter should be instsance of Parameter.'
-            )
 
         if parameter.name in name_hash:
-            raise SyntaxError('duplicates on ' + parameter.name)
+            raise MagicSyntaxError(
+                'redefinition of parameter',
+                name=parameter.name,
+            )
 
         name_hash[parameter.name] = idx
 
@@ -97,9 +95,10 @@ def build_parameter_package(parameters):
                 start_of_defaults = idx
         else:
             if start_of_defaults >= 0:
-                raise SyntaxError(
+                raise MagicSyntaxError(
                     'Parameter without default should be placed '
-                    'in front of all parameters with default.'
+                    'in front of all parameters with default.',
+                    name=parameter.name,
                 )
 
         idx += 1
@@ -115,6 +114,6 @@ def build_parameter_package(parameters):
 
 
 from magic_constraints.utils import (
-    raise_on_nontype_object,
+    raise_on_nontype_object, raise_on_non_parameters,
     repr_return, conditional_repr,
 )  # noqa

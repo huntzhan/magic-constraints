@@ -5,8 +5,6 @@ from __future__ import (
 from builtins import *                  # noqa
 from future.builtins.disabled import *  # noqa
 
-from magic_constraints.utils import repr_return
-
 
 class MagicErrorMixin(Exception):
 
@@ -50,3 +48,6 @@ class MagicSyntaxError(MagicErrorMixin, SyntaxError):
 
 class MagicTypeError(MagicErrorMixin, TypeError):
     pass
+
+
+from magic_constraints.utils import repr_return  # noqa

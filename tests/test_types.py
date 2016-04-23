@@ -52,9 +52,9 @@ def test_set():
     assert isinstance({1, 2}, Set[int])
     assert not isinstance({1, 2.0}, Set[int])
 
-    with pytest.raises(SyntaxError):
+    with pytest.raises(TypeError):
         Set[int, ]
-    with pytest.raises(SyntaxError):
+    with pytest.raises(TypeError):
         Set[int, float]
 
     assert issubclass(MutableSet, Set)
@@ -75,11 +75,11 @@ def test_mapping():
     assert not isinstance({'a': 1.0}, MutableMapping[str, int])
     assert not isinstance({1: 1}, MutableMapping[str, int])
 
-    with pytest.raises(SyntaxError):
+    with pytest.raises(TypeError):
         Mapping[int]
-    with pytest.raises(SyntaxError):
+    with pytest.raises(TypeError):
         Mapping[int, ]
-    with pytest.raises(SyntaxError):
+    with pytest.raises(TypeError):
         Mapping[int, int, int]
 
     assert issubclass(MutableMapping, Mapping)
@@ -118,7 +118,7 @@ def test_iterator():
     with pytest.raises(TypeError):
         for _ in Iterator[int](iter([1, 2.0])):
             pass
-    with pytest.raises(SyntaxError):
+    with pytest.raises(TypeError):
         Iterator[int, int]
 
     assert isinstance(
@@ -136,7 +136,7 @@ def test_iterable():
     with pytest.raises(TypeError):
         for _ in Iterable[int]([1, 2.0]):
             pass
-    with pytest.raises(SyntaxError):
+    with pytest.raises(TypeError):
         Iterable[int, int]
 
     assert isinstance(

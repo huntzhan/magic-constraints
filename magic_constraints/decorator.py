@@ -5,6 +5,7 @@ from __future__ import (
 from builtins import *                  # noqa
 from future.builtins.disabled import *  # noqa
 
+from magic_constraints.exception import MagicSyntaxError
 from magic_constraints.parameter import (
     build_parameter_package,
 )
@@ -83,7 +84,7 @@ def _function_constraints_pass_by_compound_args(parameters):
 
 def function_constraints(*args, **options):
     if not args:
-        raise SyntaxError(
+        raise MagicSyntaxError(
             'args should not be empty',
         )
 
@@ -153,7 +154,7 @@ def _method_constraints_pass_by_compound_args(parameters):
 
 def method_constraints(*args, **options):
     if not args:
-        raise SyntaxError(
+        raise MagicSyntaxError(
             'args should not be empty',
         )
 

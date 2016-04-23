@@ -25,11 +25,11 @@ def test_function_constraints_pass_by_compound():
     with pytest.raises(AssertionError):
         example(2, 1.0)
 
-    with pytest.raises(TypeError):
+    with pytest.raises(SyntaxError):
         example(1)
-    with pytest.raises(TypeError):
+    with pytest.raises(SyntaxError):
         example(1.0)
-    with pytest.raises(TypeError):
+    with pytest.raises(SyntaxError):
         example(1, a=1)
 
 
@@ -47,11 +47,11 @@ def test_function_constraints_pass_by_positional():
     with pytest.raises(AssertionError):
         example(2, 1.0)
 
-    with pytest.raises(TypeError):
+    with pytest.raises(SyntaxError):
         example(1)
-    with pytest.raises(TypeError):
+    with pytest.raises(SyntaxError):
         example(1.0)
-    with pytest.raises(TypeError):
+    with pytest.raises(SyntaxError):
         example(1, a=1)
 
 

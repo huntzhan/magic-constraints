@@ -5,6 +5,8 @@ from __future__ import (
 from builtins import *                  # noqa
 from future.builtins.disabled import *  # noqa
 
+from magic_constraints.exception import MagicSyntaxError, MagicTypeError
+
 
 def transform_to_slots(parameter_package, *args, **kwargs):
 
@@ -14,7 +16,11 @@ def transform_to_slots(parameter_package, *args, **kwargs):
     plen = len(parameter_package.parameters)
 
     if len(args) > plen:
-        raise TypeError
+        raise MagicSyntaxError(
+            'argument length unmatched.',
+            parameters=parameter_package.parameters,
+            args=args,
+        )
 
     slots = [UnFill] * plen
     unfill_count = plen
@@ -27,20 +33,30 @@ def transform_to_slots(parameter_package, *args, **kwargs):
     # 2. fill kwargs.
     for key, val in kwargs.items():
         if key not in parameter_package.name_hash:
-            raise TypeError(
-                'invalid key: {0}'.format(key),
+            raise MagicSyntaxError(
+                'invalid keyword argument',
+                parameters=parameter_package.parameters,
+                key=key,
             )
 
         i = parameter_package.name_hash[key]
         if slots[i] is not UnFill:
-            raise TypeError(
-                'reassign key: {0}'.format(key),
+            raise MagicSyntaxError(
+                'key reassignment error.',
+                parameters=parameter_package.parameters,
+                key=key,
             )
+
         slots[i] = val
         unfill_count -= 1
 
     # 3. fill defaults if not set.
-    for i in range(parameter_package.start_of_defaults, plen):
+    # 3.1. deal with the case that default not exists.
+    default_begin = parameter_package.start_of_defaults
+    if default_begin < 0:
+        default_begin = plen
+    # 3.2 fill defaults.
+    for i in range(default_begin, plen):
         parameter = parameter_package.parameters[i]
         j = parameter_package.name_hash[parameter.name]
 
@@ -50,8 +66,10 @@ def transform_to_slots(parameter_package, *args, **kwargs):
 
     # 4. test if slots contains UnFill.
     if unfill_count != 0:
-        raise TypeError(
+        raise MagicSyntaxError(
             'slots contains unfilled argument(s).',
+            parameters=parameter_package.parameters,
+            slots=slots,
         )
 
     return slots
@@ -64,10 +82,14 @@ def check_and_bind_arguments(parameters, slots, bind_callback):
     for i in range(plen):
         arg = slots[i]
         parameter = parameters[i]
+
         # check.
         if not parameter.check_argument(arg):
-            raise TypeError(
-                '{0} cannot match {1}'.format(arg, parameter),
+            raise MagicTypeError(
+                'argument unmatched.',
+                parameter=parameter,
+                argument=arg,
             )
+
         # bind.
         bind_callback(parameter.name, arg)

@@ -33,7 +33,7 @@ def test_on_init():
         Case(42, [1], [1, 2, 3, 4])
     Case(42, [1], [1, 2, 3])
 
-    with pytest.raises(TypeError):
+    with pytest.raises(SyntaxError):
         Case(1.0)
     with pytest.raises(TypeError):
         Case(42, 1)
@@ -47,8 +47,8 @@ def test_none():
     class Case(object):
 
         INIT_PARAMETERS = [
-            Parameter('a', int, nullable=True),
-            Parameter('b', list, nullable=True),
+            Parameter('a', int, nullable=True, default=None),
+            Parameter('b', list, nullable=True, default=None),
         ]
 
     Case()
@@ -98,7 +98,7 @@ def test_class_parameter():
 
     Case1(1)
     Case1(a=1)
-    with pytest.raises(TypeError):
+    with pytest.raises(SyntaxError):
         Case1(b=1)
 
     @class_initialization_constraints
@@ -135,7 +135,7 @@ def test_nested_type():
     with pytest.raises(TypeError):
         Case(1)
 
-    with pytest.raises(SyntaxError):
+    with pytest.raises(TypeError):
 
         @class_initialization_constraints
         class Case1(object):
@@ -151,7 +151,7 @@ def test_none_2():
     class Case1(object):
 
         INIT_PARAMETERS = [
-            Parameter('a', int, nullable=True),
+            Parameter('a', int, nullable=True, default=None),
         ]
 
     @class_initialization_constraints
@@ -199,13 +199,13 @@ def test_corner_case():
             Parameter('a', int),
         ]
 
-    with pytest.raises(TypeError):
+    with pytest.raises(SyntaxError):
         Case3()
-    with pytest.raises(TypeError):
+    with pytest.raises(SyntaxError):
         Case3(1, 2)
-    with pytest.raises(TypeError):
+    with pytest.raises(SyntaxError):
         Case3(1, a=2)
-    with pytest.raises(TypeError):
+    with pytest.raises(SyntaxError):
         Case3(b=2)
 
     with pytest.raises(TypeError):

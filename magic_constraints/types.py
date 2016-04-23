@@ -10,6 +10,7 @@ from abc import ABCMeta
 # collections.abc dosn't esist in Python 2.x.
 import collections as abc
 
+from magic_constraints.exception import MagicTypeError
 from magic_constraints.utils import (
     type_object, nontype_object,
     repr_return, conditional_repr,
@@ -31,7 +32,10 @@ def CreateMetaMagicType(generator_cls):
                 'check_getitem_type_decl',
             )
             if type_decl_checker and not type_decl_checker(type_decl):
-                raise SyntaxError
+                raise MagicTypeError(
+                    'invalid type.',
+                    type_decl=type_decl,
+                )
 
             ret_cls = generator_cls(cls.main_cls)
             ret_cls.partial_cls = type_decl
@@ -229,7 +233,10 @@ class IteratorGenerator(MagicTypeGenerator):
 
     def __init__(self, iterator):
         if not isinstance(iterator, abc.Iterator):
-            raise TypeError
+            raise MagicTypeError(
+                'require Iterator.',
+                iterator=iterator,
+            )
         self.iterator = iterator
 
     def __iter__(self):
@@ -240,7 +247,11 @@ class IteratorGenerator(MagicTypeGenerator):
         if isinstance(element, self.partial_cls):
             return element
         else:
-            raise TypeError
+            raise MagicTypeError(
+                'type unmatched.',
+                element=element,
+                type_=self.partial_cls,
+            )
 
     def __instancecheck__(cls, instance):
         return check_type_of_instance(cls, instance)
@@ -253,7 +264,10 @@ class IterableGenerator(MagicTypeGenerator):
 
     def __init__(self, iterable):
         if not isinstance(iterable, abc.Iterable):
-            raise TypeError
+            raise MagicTypeError(
+                'require Iterable.',
+                iterable=iterable,
+            )
         self.iterable = iterable
 
     def __iter__(self):

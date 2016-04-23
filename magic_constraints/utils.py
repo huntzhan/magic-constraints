@@ -8,6 +8,7 @@ from future.builtins.disabled import *  # noqa
 import sys
 import types
 from abc import ABCMeta
+import collections as abc
 
 from funcsigs import signature
 from funcsigs import Parameter as SigParameter
@@ -36,25 +37,34 @@ def nontype_object(obj):
 
 def raise_on_non_function(function):
     if not isinstance(function, types.FunctionType):
-        raise TypeError(
-            '{0} should be FunctionType.'.format(function),
+        raise MagicTypeError(
+            'require FunctionType.',
+            function=function,
         )
 
 
 def raise_on_non_parameters(parameters):
+    if not isinstance(parameters, abc.Iterable):
+        raise MagicTypeError(
+            'parameter should be Iterable.',
+            parameters=parameters,
+        )
+
     for p in parameters:
         if isinstance(p, Parameter):
             continue
         else:
-            raise SyntaxError(
-                '{0} is not the instance of Parameter.'.format(p),
+            raise MagicTypeError(
+                'require instance of Parameter.',
+                p=p,
             )
 
 
 def raise_on_nontype_object(obj):
     if nontype_object(obj):
-        raise TypeError(
-            '{0} is not a type object.'.format(obj),
+        raise MagicTypeError(
+            'require type object.',
+            obj=obj,
         )
 
 
@@ -62,8 +72,10 @@ def build_parameters_by_function_inspection(type_args, function, fi):
     argument_sigs = signature(function)
 
     if len(argument_sigs.parameters) - fi != len(type_args):
-        raise SyntaxError(
+        raise MagicSyntaxError(
             'length of arguments not match.',
+            type_args=type_args,
+            function_signature=argument_sigs.parameters,
         )
 
     parameters = []
@@ -77,10 +89,11 @@ def build_parameters_by_function_inspection(type_args, function, fi):
             SigParameter.POSITIONAL_ONLY,
             SigParameter.POSITIONAL_OR_KEYWORD
         ]:
-            raise SyntaxError(
-                'not support argument [{0}] with the kind of [{1}].'.format(
-                    name, SigParameter.kind,
-                ),
+            raise MagicSyntaxError(
+                'supports only POSITIONAL_ONLY '
+                'or POSITIONAL_OR_KEYWORD argument.',
+                name=name,
+                kine=SigParameter.kind,
             )
 
         if sig_parameter.default is sig_parameter.empty:
@@ -114,4 +127,7 @@ def conditional_repr(obj):
 
 from magic_constraints.parameter import (
     Parameter, build_parameter_package,
+)  # noqa
+from magic_constraints.exception import (
+    MagicSyntaxError, MagicTypeError,
 )  # noqa
