@@ -8,6 +8,10 @@ from __future__ import (
 from builtins import *                  # noqa
 from future.builtins.disabled import *  # noqa
 
+from magic_constraints.exception import (
+    MagicSyntaxError,
+    MagicTypeError,
+)
 
 from magic_constraints.parameter import Parameter
 
@@ -38,6 +42,9 @@ from magic_constraints.types import (
 )
 
 __all__ = [
+    'MagicSyntaxError',
+    'MagicTypeError',
+
     'Parameter',
 
     'function_constraints',
