@@ -126,7 +126,7 @@ def test_class_initialization_constraints():
         class_initialization_constraints(1)
 
 
-def test_corner_cases():
+def test_corner_cases1():
 
     with pytest.raises(TypeError):
         @function_constraints(
@@ -153,5 +153,5 @@ def test_corner_cases():
         @function_constraints(
             int, float,
         )
-        def func2(a, *, b):
+        def func2(*a, **b):
             pass
