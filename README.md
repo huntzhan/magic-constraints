@@ -264,7 +264,7 @@ Explanations are as follow.
 
 ### `function_constraints`
 
-`function_constraints` supports two forms of invacations:
+`function_constraints` supports two forms of invocations:
 
 1. `function_constraints(<type object>, ...)`
 2. `function_constraints(Parameter(name, <type object>, nullable=False, default=None), ..., pass_by_compound=True)`
@@ -272,6 +272,9 @@ Explanations are as follow.
 Example:
 
 ```python
+from magic_constraints import function_constraints, Parameter
+
+
 @function_constraints(
     int, float, int, str,
 )
@@ -311,5 +314,31 @@ Signature of Parameter: `Parameter(name, type_, nullable=False, default=None, ca
 [13]: https://docs.python.org/2/reference/lexical_analysis.html#identifiers
 
 ### `method_constraints`
+
+`method_constraints` is almost identical to `function_constraints`, except that `method_constraints` decorates [method][14] instead of [function][15]. Make sure you understand what the method is. Here's a example of usage:
+
+```python
+class Example(object):
+
+    @classmethod
+    @method_constraints(
+        int, float, int, str,
+    )
+    def form1(cls, a, b, c=42, d=None):
+        return a, b, c, d
+
+    @method_constraints(
+        Parameter('a', int),
+        Parameter('b', float),
+        Parameter('c', int, default=42),
+        Parameter('d', str, nullable=True, default=None),
+        pass_by_compound=True,
+    )
+    def form2(self, args):
+        return args.a, args.b, args.c, args.d
+```
+
+[14]: https://docs.python.org/3/glossary.html#term-method
+[15]: https://docs.python.org/3/glossary.html#term-function
 
 ### `class_initialization_constraints`
