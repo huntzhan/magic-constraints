@@ -11,6 +11,11 @@ from magic_constraints.utils import (
 )
 
 
+def test_exception():
+    assert issubclass(MagicSyntaxError, MagicError)
+    assert issubclass(MagicTypeError, MagicError)
+
+
 def test_repr_and_str():
 
     assert (

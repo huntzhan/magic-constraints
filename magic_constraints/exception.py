@@ -6,7 +6,7 @@ from builtins import *                  # noqa
 from future.builtins.disabled import *  # noqa
 
 
-class MagicErrorMixin(Exception):
+class MagicError(Exception):
 
     def __init__(self, message='[Empty Message]', **kwargs):
         super().__init__(repr_return(message))
@@ -42,11 +42,11 @@ class MagicErrorMixin(Exception):
         return ret
 
 
-class MagicSyntaxError(MagicErrorMixin, SyntaxError):
+class MagicSyntaxError(MagicError, SyntaxError):
     pass
 
 
-class MagicTypeError(MagicErrorMixin, TypeError):
+class MagicTypeError(MagicError, TypeError):
     pass
 
 

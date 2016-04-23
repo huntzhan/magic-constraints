@@ -9,6 +9,7 @@ from builtins import *                  # noqa
 from future.builtins.disabled import *  # noqa
 
 from magic_constraints.exception import (
+    MagicError,
     MagicSyntaxError,
     MagicTypeError,
 )
@@ -42,6 +43,7 @@ from magic_constraints.types import (
 )
 
 __all__ = [
+    'MagicError',
     'MagicSyntaxError',
     'MagicTypeError',
 
