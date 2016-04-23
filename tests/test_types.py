@@ -125,6 +125,24 @@ def test_iterator():
     )
 
 
+def test_iterable():
+    assert isinstance([1, 2, 3], Iterable)
+    assert not isinstance(1, Iterable)
+
+    for _ in Iterable[int]([1, 2]):
+        pass
+    with pytest.raises(TypeError):
+        for _ in Iterable[int]([1, 2.0]):
+            pass
+    with pytest.raises(SyntaxError):
+        Iterable[int, int]
+
+    assert isinstance(
+        (i for i in range(10)),
+        Iterable,
+    )
+
+
 def test_any():
 
     assert isinstance(1, Any)

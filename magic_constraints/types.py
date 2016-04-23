@@ -246,6 +246,25 @@ class IteratorGenerator(MagicTypeGenerator):
         return check_type_of_instance(cls, instance)
 
 
+class IterableGenerator(MagicTypeGenerator):
+
+    def check_getitem_type_decl(type_decl):
+        return type_object(type_decl)
+
+    def __init__(self, iterable):
+        if not isinstance(iterable, abc.Iterable):
+            raise TypeError
+        self.iterable = iterable
+
+    def __iter__(self):
+        return Iterator[self.partial_cls](
+            iter(self.iterable),
+        )
+
+    def __instancecheck__(cls, instance):
+        return check_type_of_instance(cls, instance)
+
+
 class AnyMeta(ABCMeta):
 
     def __instancecheck__(cls, instance):
@@ -307,5 +326,6 @@ MutableMapping = MappingGenerator(abc.MutableMapping)
 ImmutableMapping = MappingGenerator(ABCImmutableMapping)
 
 Iterator = IteratorGenerator(abc.Iterator)
+Iterable = IterableGenerator(abc.Iterable)
 
 Union = UnionGenerator(Any)
