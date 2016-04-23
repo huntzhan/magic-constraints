@@ -5,10 +5,16 @@ from __future__ import (
 from builtins import *                  # noqa
 from future.builtins.disabled import *  # noqa
 
-# import pytest
+import pytest
 from magic_constraints import *  # noqa
 from magic_constraints.parameter import *  # noqa
 from magic_constraints.utils import *  # noqa
+
+
+pytestmark = pytest.mark.skipif(
+    sys.version_info.major < 3,
+    reason="future problem.",
+)
 
 
 def test_repr():
