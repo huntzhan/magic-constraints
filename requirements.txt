@@ -6,6 +6,7 @@ pytest-flake8
 pytest-cov
 pytest-mock
 pytest-travis-fold
+coveralls
 
 future
 funcsigs
