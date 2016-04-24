@@ -10,10 +10,9 @@ from collections import namedtuple
 from magic_constraints.exception import MagicSyntaxError
 
 
-class Parameter(object):
+class BaseType(object):
 
-    def __init__(self, name, type_, **options):
-        self.name = name
+    def __init__(self, type_, **options):
 
         raise_on_nontype_object(type_)
         self.type_ = type_
@@ -21,20 +20,27 @@ class Parameter(object):
         # key only arguemnt.
         # 1. if nullable, None is accepted.
         self.nullable = options.get('nullable', False)
+
         # 2. record default value.
+        # NOTICE that ReturnType do not support default.
         if 'default' in options:
             self.with_default = True
             self.default = options['default']
         else:
             self.with_default = False
             self.default = None
+
         # 3. user-defined validator on input argument.
         self.validator = options.get(
             'validator', lambda instance: True,
         )
 
-        self._arguments_repr = self._generate_init_arguments_repr(
-            name, type_, **options
+        # generator serialized string for repr.
+        self._arguments_repr = '{prefix}, {suffix}'.format(
+            # op 1.
+            prefix=self.init_arguments_repr_prefix(type_, **options),
+            # common suffix.
+            suffix=self._init_arguments_repr_suffix(type_, **options),
         )
 
     def check_argument(self, instance):
@@ -47,10 +53,9 @@ class Parameter(object):
             return False
         return self.validator(instance)
 
-    def _generate_init_arguments_repr(self, name, type_, **options):
+    def _init_arguments_repr_suffix(self, type_, **options):
         # positional arguments.
-        prefix = "name={name}, type_={type_}".format(
-            name=conditional_repr(name),
+        prefix = "type_={type_}".format(
             type_=conditional_repr(type_),
         )
         # keyword-only arguments.
@@ -66,6 +71,18 @@ class Parameter(object):
             arguemnt_repr = prefix
 
         return arguemnt_repr
+
+
+class Parameter(BaseType):
+
+    def __init__(self, name, type_, **options):
+        self.name = name
+        super().__init__(type_, **options)
+
+    def init_arguments_repr_prefix(self, type_, **options):
+        return 'name={0}'.format(
+            conditional_repr(self.name),
+        )
 
     def __repr__(self):
         return repr_return(
