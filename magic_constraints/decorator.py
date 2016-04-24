@@ -6,7 +6,10 @@ from builtins import *                  # noqa
 from future.builtins.disabled import *  # noqa
 import types
 
-from magic_constraints.exception import MagicSyntaxError
+from magic_constraints.exception import (
+    MagicSyntaxError,
+    MagicTypeError,
+)
 
 from magic_constraints.constraint import (
     Constraint,
@@ -33,16 +36,16 @@ from magic_constraints.utils import (
 
 def decorator_dispather(args, options,
                         by_positional, by_compound):
-    if not args:
+    if not args and 'return_type' not in options:
         raise MagicSyntaxError(
-            'args should not be empty',
+            'empty args with no return_type option.',
         )
 
-    if isinstance(args[0], Constraint):
-        return by_compound(args, options)
-
-    elif type_object(args[0]):
+    if 'return_type' in options or type_object(args[0]):
         return by_positional(args, options)
+
+    elif isinstance(args[0], Constraint):
+        return by_compound(args, options)
 
     elif len(args) == 1 and isinstance(args[0], types.FunctionType):
         pass
@@ -50,6 +53,15 @@ def decorator_dispather(args, options,
     else:
         raise MagicSyntaxError(
             'can not dispatch.',
+        )
+
+
+def check_ret(ret, return_type):
+    if not return_type.check_argument(ret):
+        raise MagicTypeError(
+            'return value unmatched.',
+            return_type=return_type,
+            ret=ret,
         )
 
 
@@ -82,7 +94,7 @@ def _function_constraints_pass_by_positional_args(type_args, options):
             )
 
             ret = function(*slots)
-            constraints_package.return_type.check_argument(ret)
+            check_ret(ret, constraints_package.return_type)
             return ret
 
         return wrapper
@@ -119,7 +131,7 @@ def _function_constraints_pass_by_compound_args(constraints, options):
             )
 
             ret = function(compound_args)
-            constraints_package.return_type.check_argument(ret)
+            check_ret(ret, constraints_package.return_type)
             return ret
 
         return wrapper
@@ -163,7 +175,7 @@ def _method_constraints_pass_by_positional_args(type_args, options):
             )
 
             ret = function(self_or_cls, *slots)
-            constraints_package.return_type.check_argument(ret)
+            check_ret(ret, constraints_package.return_type)
             return ret
 
         return wrapper
@@ -200,7 +212,7 @@ def _method_constraints_pass_by_compound_args(constraints, options):
             )
 
             ret = function(self_or_cls, compound_args)
-            constraints_package.return_type.check_argument(ret)
+            check_ret(ret, constraints_package.return_type)
             return ret
 
         return wrapper

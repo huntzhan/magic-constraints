@@ -157,3 +157,74 @@ def test_corner_cases1():
         )
         def func2(*a, **b):
             pass
+
+
+def test_return_type():
+
+    @function_constraints(
+        int,
+        return_type=int,
+    )
+    def func1(a):
+        return a
+
+    @function_constraints(
+        int,
+        return_type=float,
+    )
+    def func2(a):
+        return a
+
+    func1(1)
+    with pytest.raises(TypeError):
+        func2(1)
+
+    @function_constraints(
+        Parameter('a', int, nullable=True),
+        ReturnType(float, nullable=True),
+    )
+    def func3(args):
+        return args.a
+
+    func3(None)
+    with pytest.raises(TypeError):
+        func3(1)
+
+    class Example(object):
+
+        @method_constraints(
+            int,
+            return_type=float,
+        )
+        def func1(self, a):
+            return a
+
+        @method_constraints(
+            Parameter('a', int, nullable=True),
+            ReturnType(float, nullable=True),
+        )
+        def func2(self, args):
+            return args.a
+
+    e = Example()
+    with pytest.raises(TypeError):
+        e.func1(1)
+    e.func2(None)
+    with pytest.raises(TypeError):
+        e.func2(1)
+
+    @function_constraints(
+        ReturnType(float, nullable=True),
+    )
+    def func4(args):
+        return None
+
+    func4()
+
+    @function_constraints(
+        return_type=int
+    )
+    def func5():
+        return 42
+
+    func5()

@@ -186,7 +186,7 @@ def build_constraints_package(constraints):
         return_type = constraints[-1]
     else:
         parameters = constraints
-        return_type = ReturnType(Any)
+        return_type = ReturnType(Any, nullable=True)
 
     name_hash, start_of_defaults = check_and_preprocess_parameters(parameters)
 
@@ -252,7 +252,7 @@ def build_return_type_in_inspection(return_type):
         return ReturnType(type(None)),
 
     elif return_type is SigParameter.empty:
-        return ReturnType(Any)
+        return ReturnType(Any, nullable=True)
 
     elif type_object(return_type):
         return ReturnType(return_type)
