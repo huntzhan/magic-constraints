@@ -302,13 +302,13 @@ def form2(args):
 
 `form2` is enable by passing the keyword-only argument `pass_by_compound=True` to `function_constraints`. `form2` accepts arbitrary number of `Parameter` instances. After checking the input arguments in runtime, thoses arguments will be bound to a single object as its attributes. Hence, in this cases user-defined function, that is, the one decorated by `function_constraints` should define only one `POSITIONAL_ONLY` argument.
 
-Signature of Parameter: `Parameter(name, type_, nullable=False, default=None, callback=None)`. Explanation:
+Signature of Parameter: `Parameter(name, type_, nullable=False, default=None, validator=None)`. Explanation:
 
 * `name` is name of parameter. `name` must follows [the rule of defining identifier][13] of Python.
 * `type_` defines the type of accepted instances, should be a type object.
 * (optional) `nullable=True` means the parameter can accept `None` as its value, independent of `type_`. If omitted, `nullable=False`.
 * (optional) `default` defines the default value of parameter. If omitted and there is no argument could be bound to the parameter in the runtime, `MagicSyntaxError` will be raised.
-* (optional) `callback` accepts a callable that with single positional argument and returns a boolean value. If defined, `callback` will be invoked after the type introspection. If `callback` returns `False`, `MagicTypeError` will be raised.
+* (optional) `validator` accepts a callable that with single positional argument and returns a boolean value. If defined, `validator` will be invoked after the type introspection. If `validator` returns `False`, `MagicTypeError` will be raised.
 
 [12]: https://docs.python.org/3.5/library/inspect.html#inspect.Parameter.kind
 [13]: https://docs.python.org/2/reference/lexical_analysis.html#identifiers

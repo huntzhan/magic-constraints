@@ -19,8 +19,8 @@ pytestmark = pytest.mark.skipif(
 )
 
 
-def test_callback():
-    p = Parameter('a', int, callback=lambda n: n == 42)
+def test_validator():
+    p = Parameter('a', int, validator=lambda n: n == 42)
     assert p.check_argument(42)
     assert not p.check_argument(0)
     assert not p.check_argument('test')

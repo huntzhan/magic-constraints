@@ -12,7 +12,7 @@ from magic_constraints.exception import MagicSyntaxError
 
 class Parameter(object):
 
-    def __init__(self, name, type_, **kwargs):
+    def __init__(self, name, type_, **options):
         self.name = name
 
         raise_on_nontype_object(type_)
@@ -20,21 +20,21 @@ class Parameter(object):
 
         # key only arguemnt.
         # 1. if nullable, None is accepted.
-        self.nullable = kwargs.get('nullable', False)
+        self.nullable = options.get('nullable', False)
         # 2. record default value.
-        if 'default' in kwargs:
+        if 'default' in options:
             self.with_default = True
-            self.default = kwargs['default']
+            self.default = options['default']
         else:
             self.with_default = False
             self.default = None
-        # 3. user-defined callback on input argument.
-        self.callback = kwargs.get(
-            'callback', lambda instance: True,
+        # 3. user-defined validator on input argument.
+        self.validator = options.get(
+            'validator', lambda instance: True,
         )
 
         self._arguments_repr = self._generate_init_arguments_repr(
-            name, type_, **kwargs
+            name, type_, **options
         )
 
     def check_argument(self, instance):
@@ -42,12 +42,12 @@ class Parameter(object):
             if not (self.nullable or issubclass(self.type_, type(None))):
                 return False
             else:
-                return self.callback(None)
+                return self.validator(None)
         if not isinstance(instance, self.type_):
             return False
-        return self.callback(instance)
+        return self.validator(instance)
 
-    def _generate_init_arguments_repr(self, name, type_, **kwargs):
+    def _generate_init_arguments_repr(self, name, type_, **options):
         # positional arguments.
         prefix = "name={name}, type_={type_}".format(
             name=conditional_repr(name),
@@ -56,7 +56,7 @@ class Parameter(object):
         # keyword-only arguments.
         suffix = ', '.join(map(
             lambda p: "{0}={1}".format(p[0], conditional_repr(p[1])),
-            sorted(kwargs.items(), key=lambda p: p[0]),
+            sorted(options.items(), key=lambda p: p[0]),
         ))
 
         # merge.
