@@ -6,7 +6,7 @@ from builtins import *                  # noqa
 from future.builtins.disabled import *  # noqa
 
 from magic_constraints.exception import MagicSyntaxError
-from magic_constraints.parameter import (
+from magic_constraints.constraint import (
     build_parameter_package,
 )
 from magic_constraints.argument import (

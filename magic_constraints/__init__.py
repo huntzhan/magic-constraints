@@ -14,7 +14,7 @@ from magic_constraints.exception import (
     MagicTypeError,
 )
 
-from magic_constraints.parameter import Parameter
+from magic_constraints.constraint import Parameter
 
 from magic_constraints.decorator import (
     function_constraints,

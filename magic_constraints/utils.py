@@ -131,7 +131,7 @@ def conditional_repr(obj):
         return repr(obj)
 
 
-from magic_constraints.parameter import (
+from magic_constraints.constraint import (
     Parameter, build_parameter_package,
 )  # noqa
 from magic_constraints.exception import (
