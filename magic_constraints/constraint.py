@@ -205,9 +205,6 @@ def build_constraints_package(constraints):
 
 
 def build_parameter_in_inspection(name, type_, sig_parameter):
-    annotation = sig_parameter.annotation
-    default = sig_parameter.default
-
     # check the form of parameter.
     if sig_parameter.kind not in [
         SigParameter.POSITIONAL_ONLY,
@@ -219,6 +216,9 @@ def build_parameter_in_inspection(name, type_, sig_parameter):
             name=name,
             kine=SigParameter.kind,
         )
+
+    annotation = sig_parameter.annotation
+    default = sig_parameter.default
 
     # two cases on annotation.
     if type_ is None:
@@ -274,7 +274,7 @@ def build_constraints_with_annotation(function, skip_first_argument):
             skip_first_argument = False
             continue
 
-        parameters.append(
+        constraints.append(
             build_parameter_in_inspection(name, None, sig_parameter),
         )
 

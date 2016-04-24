@@ -14,8 +14,9 @@ from magic_constraints.exception import (
 from magic_constraints.constraint import (
     Constraint,
 
-    build_constraints_with_given_type_args,
     build_constraints_package,
+    build_constraints_with_given_type_args,
+    build_constraints_with_annotation,
 
     raise_on_non_constraints,
     raise_on_non_parameters,
@@ -35,7 +36,7 @@ from magic_constraints.utils import (
 
 
 def decorator_dispather(args, options,
-                        by_positional, by_compound):
+                        by_positional, by_compound, by_inspection):
     if not args and 'return_type' not in options:
         raise MagicSyntaxError(
             'empty args with no return_type option.',
@@ -48,7 +49,7 @@ def decorator_dispather(args, options,
         return by_compound(args, options)
 
     elif len(args) == 1 and isinstance(args[0], types.FunctionType):
-        pass
+        return by_inspection(args[0])
 
     else:
         raise MagicSyntaxError(
@@ -138,11 +139,35 @@ def _function_constraints_pass_by_compound_args(constraints, options):
     return decorator
 
 
+# @function_constraints
+# def function(foo: int, bar: float) -> float:
+#     return foo + bar
+def _function_constraints_by_inspection(function):
+    raise_on_non_function(function)
+
+    constraints_package = build_constraints_package(
+        build_constraints_with_annotation(function, False),
+    )
+
+    def wrapper(*args, **kwargs):
+        slots = transform_to_slots(constraints_package, *args, **kwargs)
+        check_and_bind_arguments(
+            constraints_package.parameters, slots, lambda name, arg: None,
+        )
+
+        ret = function(*slots)
+        check_ret(ret, constraints_package.return_type)
+        return ret
+
+    return wrapper
+
+
 def function_constraints(*args, **options):
     return decorator_dispather(
         args, options,
         _function_constraints_pass_by_positional_args,
         _function_constraints_pass_by_compound_args,
+        _function_constraints_by_inspection,
     )
 
 
@@ -219,11 +244,35 @@ def _method_constraints_pass_by_compound_args(constraints, options):
     return decorator
 
 
+# @method_constraints
+# def method(self_or_cls, foo: int, bar: float) -> float:
+#     return foo + bar
+def _method_constraints_by_inspection(function):
+    raise_on_non_function(function)
+
+    constraints_package = build_constraints_package(
+        build_constraints_with_annotation(function, True),
+    )
+
+    def wrapper(self_or_cls, *args, **kwargs):
+        slots = transform_to_slots(constraints_package, *args, **kwargs)
+        check_and_bind_arguments(
+            constraints_package.parameters, slots, lambda name, arg: None,
+        )
+
+        ret = function(self_or_cls, *slots)
+        check_ret(ret, constraints_package.return_type)
+        return ret
+
+    return wrapper
+
+
 def method_constraints(*args, **options):
     return decorator_dispather(
         args, options,
         _method_constraints_pass_by_positional_args,
         _method_constraints_pass_by_compound_args,
+        _method_constraints_by_inspection,
     )
 
 
