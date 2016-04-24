@@ -8,10 +8,6 @@ from future.builtins.disabled import *  # noqa
 import sys
 import types
 from abc import ABCMeta
-import collections as abc
-
-from funcsigs import signature
-from funcsigs import Parameter as SigParameter
 
 
 class CompoundArgument(object):
@@ -43,77 +39,12 @@ def raise_on_non_function(function):
         )
 
 
-def raise_on_non_parameters(parameters):
-    if not isinstance(parameters, abc.Iterable):
-        raise MagicTypeError(
-            'parameter should be Iterable.',
-            parameters=parameters,
-        )
-
-    for p in parameters:
-        if isinstance(p, Parameter):
-            continue
-        else:
-            raise MagicTypeError(
-                'require instance of Parameter.',
-                p=p,
-            )
-
-
 def raise_on_nontype_object(obj):
     if nontype_object(obj):
         raise MagicTypeError(
             'require type object.',
             obj=obj,
         )
-
-
-def build_parameters_by_function_inspection(type_args, function, fi):
-    argument_sigs = signature(function)
-
-    if len(argument_sigs.parameters) - fi != len(type_args):
-        raise MagicSyntaxError(
-            'length of arguments not match.',
-            type_args=type_args,
-            function_signature=argument_sigs.parameters,
-        )
-
-    parameters = []
-    ti = 0
-    for name, sig_parameter in argument_sigs.parameters.items():
-        if fi > 0:
-            fi -= 1
-            continue
-
-        if sig_parameter.kind not in [
-            SigParameter.POSITIONAL_ONLY,
-            SigParameter.POSITIONAL_OR_KEYWORD
-        ]:
-            raise MagicSyntaxError(
-                'supports only POSITIONAL_ONLY '
-                'or POSITIONAL_OR_KEYWORD argument.',
-                name=name,
-                kine=SigParameter.kind,
-            )
-
-        default_value = sig_parameter.default
-        if default_value is sig_parameter.empty:
-            # no default.
-            parameters.append(
-                Parameter(name, type_args[ti]),
-            )
-        elif default_value is None:
-            parameters.append(
-                Parameter(name, type_args[ti], nullable=True, default=None),
-            )
-        else:
-            parameters.append(
-                Parameter(name, type_args[ti], default=default_value),
-            )
-
-        ti += 1
-
-    return build_parameter_package(parameters)
 
 
 def repr_return(text):
@@ -131,9 +62,7 @@ def conditional_repr(obj):
         return repr(obj)
 
 
-from magic_constraints.constraint import (
-    Parameter, build_parameter_package,
-)  # noqa
 from magic_constraints.exception import (
-    MagicSyntaxError, MagicTypeError,
+    # MagicSyntaxError,
+    MagicTypeError,
 )  # noqa

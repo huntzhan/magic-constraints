@@ -6,8 +6,21 @@ from builtins import *                  # noqa
 from future.builtins.disabled import *  # noqa
 
 from collections import namedtuple
+import collections as abc
 
-from magic_constraints.exception import MagicSyntaxError
+from funcsigs import signature
+from funcsigs import Parameter as SigParameter
+
+from magic_constraints.types import Any
+from magic_constraints.exception import (
+    MagicSyntaxError,
+    MagicTypeError,
+)
+from magic_constraints.utils import (
+    type_object, nontype_object,
+    raise_on_nontype_object,
+    repr_return, conditional_repr,
+)
 
 
 class Constraint(object):
@@ -86,6 +99,23 @@ class Constraint(object):
         )
 
 
+def raise_on_non_parameters(parameters):
+    if not isinstance(parameters, abc.Iterable):
+        raise MagicTypeError(
+            'parameter should be Iterable.',
+            parameters=parameters,
+        )
+
+    for p in parameters:
+        if isinstance(p, Parameter):
+            continue
+        else:
+            raise MagicTypeError(
+                'require instance of Parameter.',
+                p=p,
+            )
+
+
 class Parameter(Constraint):
 
     def __init__(self, name, type_, **options):
@@ -141,7 +171,7 @@ def check_and_preprocess_parameters(parameters):
     return name_hash, start_of_defaults
 
 
-def build_parameter_package(constraints):
+def build_constraints_package(constraints):
     if isinstance(constraints[-1], ReturnType):
         parameters = constraints[:-1]
         return_type = constraints[-1]
@@ -165,7 +195,121 @@ def build_parameter_package(constraints):
     )
 
 
-from magic_constraints.utils import (
-    raise_on_nontype_object, raise_on_non_parameters,
-    repr_return, conditional_repr,
-)  # noqa
+def build_parameter_in_inspection(name, type_, sig_parameter):
+    annotation = sig_parameter.annotation
+    default = sig_parameter.default
+
+    # check the form of parameter.
+    if sig_parameter.kind not in [
+        SigParameter.POSITIONAL_ONLY,
+        SigParameter.POSITIONAL_OR_KEYWORD
+    ]:
+        raise MagicSyntaxError(
+            'supports only POSITIONAL_ONLY '
+            'or POSITIONAL_OR_KEYWORD argument.',
+            name=name,
+            kine=SigParameter.kind,
+        )
+
+    # two cases on annotation.
+    if type_ is None:
+        if annotation is SigParameter.empty:
+            raise MagicSyntaxError(
+                'missing annotation',
+                name=name,
+            )
+    else:
+        if nontype_object(type_):
+            raise MagicTypeError(
+                'type_ should be a type object.',
+                name=name,
+                type_=type_,
+            )
+        annotation = type_
+
+    if default is SigParameter.empty:
+        # without default.
+        return Parameter(name, annotation)
+    elif default is None:
+        # with None as default.
+        return Parameter(name, annotation, nullable=True, default=None)
+    else:
+        # with non-None as default.
+        return Parameter(name, annotation, default=default)
+
+
+def build_return_type_in_inspection(return_type):
+    if return_type is None:
+        return ReturnType(type(None)),
+
+    elif return_type is SigParameter.empty:
+        return ReturnType(Any)
+
+    elif type_object(return_type):
+        return ReturnType(return_type)
+
+    else:
+        raise MagicTypeError(
+            'return_type should be None or type object.',
+            return_type=return_type,
+        )
+
+
+def build_constraints_with_annotation(function, skip_first_argument):
+    function_sig = signature(function)
+
+    constraints = []
+    # 1. parameters.
+    for name, sig_parameter in function_sig.parameters.items():
+        if skip_first_argument:
+            skip_first_argument = False
+            continue
+
+        parameters.append(
+            build_parameter_in_inspection(name, None, sig_parameter),
+        )
+
+    # 2. return type.
+    constraints.append(
+        build_return_type_in_inspection(function_sig.return_annotation),
+    )
+
+    return constraints
+
+
+def build_constraints_with_given_type_args(
+        function, skip_first_argument,
+        type_args, return_type=SigParameter.empty):
+
+    argument_sigs = signature(function)
+
+    parameter_length = len(argument_sigs.parameters)
+    if skip_first_argument:
+        parameter_length -= 1
+
+    if parameter_length != len(type_args):
+        raise MagicSyntaxError(
+            'length of arguments not match.',
+            type_args=type_args,
+            function_signature=argument_sigs.parameters,
+        )
+
+    constraints = []
+    # 1. parameters.
+    ti = 0
+    for name, sig_parameter in argument_sigs.parameters.items():
+        if skip_first_argument:
+            skip_first_argument = False
+            continue
+
+        constraints.append(
+            build_parameter_in_inspection(name, type_args[ti], sig_parameter),
+        )
+        ti += 1
+
+    # 2. return type.
+    constraints.append(
+        build_return_type_in_inspection(return_type),
+    )
+
+    return constraints

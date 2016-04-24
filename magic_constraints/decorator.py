@@ -7,7 +7,9 @@ from future.builtins.disabled import *  # noqa
 
 from magic_constraints.exception import MagicSyntaxError
 from magic_constraints.constraint import (
-    build_parameter_package,
+    build_constraints_with_given_type_args,
+    build_constraints_package,
+    raise_on_non_parameters,
 )
 from magic_constraints.argument import (
     transform_to_slots, check_and_bind_arguments,
@@ -16,9 +18,7 @@ from magic_constraints.utils import (
     CompoundArgument,
     AttributesBinder,
     raise_on_non_function,
-    raise_on_non_parameters,
     raise_on_nontype_object,
-    build_parameters_by_function_inspection,
 )
 
 
@@ -34,16 +34,18 @@ def _function_constraints_pass_by_positional_args(type_args):
     def decorator(function):
         raise_on_non_function(function)
 
-        parameter_package = build_parameters_by_function_inspection(
-            type_args,
-            function, 0,
+        constraints_package = build_constraints_package(
+            build_constraints_with_given_type_args(
+                function, False,
+                type_args,
+            ),
         )
 
         def wrapper(*args, **kwargs):
 
-            slots = transform_to_slots(parameter_package, *args, **kwargs)
+            slots = transform_to_slots(constraints_package, *args, **kwargs)
             check_and_bind_arguments(
-                parameter_package.parameters, slots, lambda name, arg: None,
+                constraints_package.parameters, slots, lambda name, arg: None,
             )
 
             return function(*slots)
@@ -63,14 +65,14 @@ def _function_constraints_pass_by_positional_args(type_args):
 def _function_constraints_pass_by_compound_args(parameters):
     raise_on_non_parameters(parameters)
 
-    parameter_package = build_parameter_package(parameters)
+    constraints_package = build_constraints_package(parameters)
 
     def decorator(function):
         raise_on_non_function(function)
 
         def wrapper(*args, **kwargs):
 
-            slots = transform_to_slots(parameter_package, *args, **kwargs)
+            slots = transform_to_slots(constraints_package, *args, **kwargs)
 
             compound_args = CompoundArgument()
             bind_callback = AttributesBinder(compound_args)
@@ -104,16 +106,18 @@ def _method_constraints_pass_by_positional_args(type_args):
     def decorator(function):
         raise_on_non_function(function)
 
-        parameter_package = build_parameters_by_function_inspection(
-            type_args,
-            function, 1,
+        constraints_package = build_constraints_package(
+            build_constraints_with_given_type_args(
+                function, True,
+                type_args,
+            ),
         )
 
         def wrapper(self_or_cls, *args, **kwargs):
 
-            slots = transform_to_slots(parameter_package, *args, **kwargs)
+            slots = transform_to_slots(constraints_package, *args, **kwargs)
             check_and_bind_arguments(
-                parameter_package.parameters, slots, lambda name, arg: None,
+                constraints_package.parameters, slots, lambda name, arg: None,
             )
 
             return function(self_or_cls, *slots)
@@ -133,14 +137,14 @@ def _method_constraints_pass_by_positional_args(type_args):
 def _method_constraints_pass_by_compound_args(parameters):
     raise_on_non_parameters(parameters)
 
-    parameter_package = build_parameter_package(parameters)
+    constraints_package = build_constraints_package(parameters)
 
     def decorator(function):
         raise_on_non_function(function)
 
         def wrapper(self_or_cls, *args, **kwargs):
 
-            slots = transform_to_slots(parameter_package, *args, **kwargs)
+            slots = transform_to_slots(constraints_package, *args, **kwargs)
 
             compound_args = CompoundArgument()
             bind_callback = AttributesBinder(compound_args)
@@ -176,7 +180,7 @@ def class_initialization_constraints(user_defined_class):
 
     parameters = getattr(user_defined_class, 'INIT_PARAMETERS', None)
     raise_on_non_parameters(parameters)
-    parameter_package = build_parameter_package(parameters)
+    constraints_package = build_constraints_package(parameters)
 
     predefined_init = getattr(
         user_defined_class,
@@ -185,7 +189,7 @@ def class_initialization_constraints(user_defined_class):
 
     def init(self, *args, **kwargs):
 
-        slots = transform_to_slots(parameter_package, *args, **kwargs)
+        slots = transform_to_slots(constraints_package, *args, **kwargs)
         bind_callback = AttributesBinder(self)
         check_and_bind_arguments(parameters, slots, bind_callback)
 
