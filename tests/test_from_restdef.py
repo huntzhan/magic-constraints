@@ -177,9 +177,9 @@ def test_none_2():
 
 def test_corner_case():
 
-    with pytest.raises(TypeError):
+    with pytest.raises(SyntaxError):
         function_constraints([])(1)
-    with pytest.raises(TypeError):
+    with pytest.raises(SyntaxError):
         function_constraints(1)(1)
 
     with pytest.raises(SyntaxError):

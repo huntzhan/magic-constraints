@@ -4,41 +4,74 @@ from __future__ import (
 )
 from builtins import *                  # noqa
 from future.builtins.disabled import *  # noqa
+import types
 
 from magic_constraints.exception import MagicSyntaxError
+
 from magic_constraints.constraint import (
+    Constraint,
+
     build_constraints_with_given_type_args,
     build_constraints_package,
+
+    raise_on_non_constraints,
     raise_on_non_parameters,
 )
+
 from magic_constraints.argument import (
     transform_to_slots, check_and_bind_arguments,
 )
+
 from magic_constraints.utils import (
     CompoundArgument,
     AttributesBinder,
+    type_object,
     raise_on_non_function,
     raise_on_nontype_object,
 )
 
 
+def decorator_dispather(args, options,
+                        by_positional, by_compound):
+    if not args:
+        raise MagicSyntaxError(
+            'args should not be empty',
+        )
+
+    if isinstance(args[0], Constraint):
+        return by_compound(args, options)
+
+    elif type_object(args[0]):
+        return by_positional(args, options)
+
+    elif len(args) == 1 and isinstance(args[0], types.FunctionType):
+        pass
+
+    else:
+        raise MagicSyntaxError(
+            'can not dispatch.',
+        )
+
+
 # @function_constraints(
 #     int, float,
+#     return_type=xxx,
 # )
 # def function(foo, bar=1.0):
 #     return foo + bar
 #
 #
-def _function_constraints_pass_by_positional_args(type_args):
+def _function_constraints_pass_by_positional_args(type_args, options):
 
     def decorator(function):
         raise_on_non_function(function)
 
+        input_type_args = [function, False, type_args]
+        if 'return_type' in options:
+            input_type_args.append(options['return_type'])
+
         constraints_package = build_constraints_package(
-            build_constraints_with_given_type_args(
-                function, False,
-                type_args,
-            ),
+            build_constraints_with_given_type_args(*input_type_args),
         )
 
         def wrapper(*args, **kwargs):
@@ -48,7 +81,10 @@ def _function_constraints_pass_by_positional_args(type_args):
                 constraints_package.parameters, slots, lambda name, arg: None,
             )
 
-            return function(*slots)
+            ret = function(*slots)
+            constraints_package.return_type.check_argument(ret)
+            return ret
+
         return wrapper
     return decorator
 
@@ -56,16 +92,17 @@ def _function_constraints_pass_by_positional_args(type_args):
 # @function_constraints(
 #     Parameter('foo', int),
 #     Parameter('bar', float, default=1.0),
-#     pass_by_compound=True,
+#     ...,
+#     ReturnType(float),
 # )
 # def function(args):
 #     return args.foo + args.bar
 #
 #
-def _function_constraints_pass_by_compound_args(parameters):
-    raise_on_non_parameters(parameters)
+def _function_constraints_pass_by_compound_args(constraints, options):
+    raise_on_non_constraints(constraints)
 
-    constraints_package = build_constraints_package(parameters)
+    constraints_package = build_constraints_package(constraints)
 
     def decorator(function):
         raise_on_non_function(function)
@@ -77,40 +114,45 @@ def _function_constraints_pass_by_compound_args(parameters):
             compound_args = CompoundArgument()
             bind_callback = AttributesBinder(compound_args)
 
-            check_and_bind_arguments(parameters, slots, bind_callback)
+            check_and_bind_arguments(
+                constraints_package.parameters, slots, bind_callback,
+            )
 
-            return function(compound_args)
+            ret = function(compound_args)
+            constraints_package.return_type.check_argument(ret)
+            return ret
+
         return wrapper
     return decorator
 
 
 def function_constraints(*args, **options):
-    if not args:
-        raise MagicSyntaxError(
-            'args should not be empty',
-        )
-
-    if options.get('pass_by_compound', False):
-        return _function_constraints_pass_by_compound_args(args)
-    else:
-        return _function_constraints_pass_by_positional_args(args)
+    return decorator_dispather(
+        args, options,
+        _function_constraints_pass_by_positional_args,
+        _function_constraints_pass_by_compound_args,
+    )
 
 
 # @method_constraints(
 #     int, float,
+#     return_type=xxx,
 # )
 # def method(self_or_cls, foo, bar):
 #     return foo + bar
-def _method_constraints_pass_by_positional_args(type_args):
+#
+#
+def _method_constraints_pass_by_positional_args(type_args, options):
 
     def decorator(function):
         raise_on_non_function(function)
 
+        input_type_args = [function, True, type_args]
+        if 'return_type' in options:
+            input_type_args.append(options['return_type'])
+
         constraints_package = build_constraints_package(
-            build_constraints_with_given_type_args(
-                function, True,
-                type_args,
-            ),
+            build_constraints_with_given_type_args(*input_type_args),
         )
 
         def wrapper(self_or_cls, *args, **kwargs):
@@ -120,7 +162,10 @@ def _method_constraints_pass_by_positional_args(type_args):
                 constraints_package.parameters, slots, lambda name, arg: None,
             )
 
-            return function(self_or_cls, *slots)
+            ret = function(self_or_cls, *slots)
+            constraints_package.return_type.check_argument(ret)
+            return ret
+
         return wrapper
     return decorator
 
@@ -128,16 +173,17 @@ def _method_constraints_pass_by_positional_args(type_args):
 # @method_constraints(
 #     Parameter('foo', int),
 #     Parameter('bar', float, default=1.0),
-#     pass_by_compound=True,
+#     ...,
+#     ReturnType(float),
 # )
 # def method(self_or_cls, args):
 #     return args.foo + args.bar
 #
 #
-def _method_constraints_pass_by_compound_args(parameters):
-    raise_on_non_parameters(parameters)
+def _method_constraints_pass_by_compound_args(constraints, options):
+    raise_on_non_constraints(constraints)
 
-    constraints_package = build_constraints_package(parameters)
+    constraints_package = build_constraints_package(constraints)
 
     def decorator(function):
         raise_on_non_function(function)
@@ -149,23 +195,24 @@ def _method_constraints_pass_by_compound_args(parameters):
             compound_args = CompoundArgument()
             bind_callback = AttributesBinder(compound_args)
 
-            check_and_bind_arguments(parameters, slots, bind_callback)
+            check_and_bind_arguments(
+                constraints_package.parameters, slots, bind_callback,
+            )
 
-            return function(self_or_cls, compound_args)
+            ret = function(self_or_cls, compound_args)
+            constraints_package.return_type.check_argument(ret)
+            return ret
+
         return wrapper
     return decorator
 
 
 def method_constraints(*args, **options):
-    if not args:
-        raise MagicSyntaxError(
-            'args should not be empty',
-        )
-
-    if options.get('pass_by_compound', False):
-        return _method_constraints_pass_by_compound_args(args)
-    else:
-        return _method_constraints_pass_by_positional_args(args)
+    return decorator_dispather(
+        args, options,
+        _method_constraints_pass_by_positional_args,
+        _method_constraints_pass_by_compound_args,
+    )
 
 
 # @class_initialization_constraints
@@ -174,7 +221,11 @@ def method_constraints(*args, **options):
 #     INIT_PARAMETERS = [
 #         Parameter('foo', int),
 #         Parameter('bar', float, default=1.0),
+#         ...,
+#         ReturnType(float),
 #     ]
+#
+#
 def class_initialization_constraints(user_defined_class):
     raise_on_nontype_object(user_defined_class)
 
@@ -191,7 +242,9 @@ def class_initialization_constraints(user_defined_class):
 
         slots = transform_to_slots(constraints_package, *args, **kwargs)
         bind_callback = AttributesBinder(self)
-        check_and_bind_arguments(parameters, slots, bind_callback)
+        check_and_bind_arguments(
+            parameters, slots, bind_callback,
+        )
 
         predefined_init(self)
 

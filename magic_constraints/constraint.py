@@ -99,23 +99,6 @@ class Constraint(object):
         )
 
 
-def raise_on_non_parameters(parameters):
-    if not isinstance(parameters, abc.Iterable):
-        raise MagicTypeError(
-            'parameter should be Iterable.',
-            parameters=parameters,
-        )
-
-    for p in parameters:
-        if isinstance(p, Parameter):
-            continue
-        else:
-            raise MagicTypeError(
-                'require instance of Parameter.',
-                p=p,
-            )
-
-
 class Parameter(Constraint):
 
     def __init__(self, name, type_, **options):
@@ -137,6 +120,32 @@ class ReturnType(Constraint):
                 default=options['default'],
             )
         super().__init__(type_, **options)
+
+
+def raise_on_non_parameters(parameters):
+    if not isinstance(parameters, abc.Sequence):
+        raise MagicTypeError(
+            'parameter should be Sequence.',
+            parameters=parameters,
+        )
+
+    for p in parameters:
+        if isinstance(p, Parameter):
+            continue
+        else:
+            raise MagicTypeError(
+                'require instance of Parameter.',
+                p=p,
+            )
+
+
+def raise_on_non_constraints(constraints):
+    raise_on_non_parameters(constraints[:-1])
+    if not isinstance(constraints[-1], Constraint):
+        raise MagicTypeError(
+            'require Parameter or ReturnType in the ending of constraints.',
+            constraints=constraints,
+        )
 
 
 def check_and_preprocess_parameters(parameters):
@@ -177,7 +186,7 @@ def build_constraints_package(constraints):
         return_type = constraints[-1]
     else:
         parameters = constraints
-        return_type = None
+        return_type = ReturnType(Any)
 
     name_hash, start_of_defaults = check_and_preprocess_parameters(parameters)
 

@@ -8,17 +8,17 @@ from future.builtins.disabled import *  # noqa
 from magic_constraints.exception import MagicSyntaxError, MagicTypeError
 
 
-def transform_to_slots(parameter_package, *args, **kwargs):
+def transform_to_slots(constraints_package, *args, **kwargs):
 
     class UnFill(object):
         pass
 
-    plen = len(parameter_package.parameters)
+    plen = len(constraints_package.parameters)
 
     if len(args) > plen:
         raise MagicSyntaxError(
             'argument length unmatched.',
-            parameters=parameter_package.parameters,
+            parameters=constraints_package.parameters,
             args=args,
         )
 
@@ -32,18 +32,18 @@ def transform_to_slots(parameter_package, *args, **kwargs):
 
     # 2. fill kwargs.
     for key, val in kwargs.items():
-        if key not in parameter_package.name_hash:
+        if key not in constraints_package.name_hash:
             raise MagicSyntaxError(
                 'invalid keyword argument',
-                parameters=parameter_package.parameters,
+                parameters=constraints_package.parameters,
                 key=key,
             )
 
-        i = parameter_package.name_hash[key]
+        i = constraints_package.name_hash[key]
         if slots[i] is not UnFill:
             raise MagicSyntaxError(
                 'key reassignment error.',
-                parameters=parameter_package.parameters,
+                parameters=constraints_package.parameters,
                 key=key,
             )
 
@@ -52,13 +52,13 @@ def transform_to_slots(parameter_package, *args, **kwargs):
 
     # 3. fill defaults if not set.
     # 3.1. deal with the case that default not exists.
-    default_begin = parameter_package.start_of_defaults
+    default_begin = constraints_package.start_of_defaults
     if default_begin < 0:
         default_begin = plen
     # 3.2 fill defaults.
     for i in range(default_begin, plen):
-        parameter = parameter_package.parameters[i]
-        j = parameter_package.name_hash[parameter.name]
+        parameter = constraints_package.parameters[i]
+        j = constraints_package.name_hash[parameter.name]
 
         if slots[j] is UnFill:
             slots[j] = parameter.default
@@ -68,7 +68,7 @@ def transform_to_slots(parameter_package, *args, **kwargs):
     if unfill_count != 0:
         raise MagicSyntaxError(
             'slots contains unfilled argument(s).',
-            parameters=parameter_package.parameters,
+            parameters=constraints_package.parameters,
             slots=slots,
         )
 

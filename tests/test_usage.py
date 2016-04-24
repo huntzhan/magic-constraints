@@ -14,7 +14,6 @@ def test_function_constraints_pass_by_compound():
     @function_constraints(
         Parameter('a', int),
         Parameter('b', float),
-        pass_by_compound=True,
     )
     def example(args):
         assert args.a == 1
@@ -75,7 +74,6 @@ def test_method_constraints():
         @classmethod
         @method_constraints(
             Parameter('a', int),
-            pass_by_compound=True,
         )
         def test_cls(cls, args):
             assert args.a == 1
@@ -133,10 +131,9 @@ def test_class_initialization_constraints():
 
 def test_corner_cases1():
 
-    with pytest.raises(TypeError):
+    with pytest.raises(SyntaxError):
         @function_constraints(
             list(),
-            pass_by_compound=True,
         )
         def example(args):
             pass
