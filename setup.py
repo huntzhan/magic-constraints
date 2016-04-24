@@ -42,7 +42,7 @@ setup(
     license=metadata.LICENSE,
     url=metadata.URL,
     description=metadata.DESCRIPTION,
-    long_description=read('README.rst'),
+    long_description=read('README.md'),
     # https://pypi.python.org/pypi?:action=list_classifiers
     classifiers=[
         'License :: OSI Approved :: MIT License',

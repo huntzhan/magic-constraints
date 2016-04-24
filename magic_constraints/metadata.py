@@ -5,7 +5,7 @@ from __future__ import (
 
 
 NAME = 'magic_constraints'
-VERSION = '0.2.0-rc-5'
+VERSION = '0.2.0-rc-6'
 AUTHORS = [
     'huntzhan',
 ]
@@ -13,5 +13,5 @@ EMAILS = [
     'programmer.zhx@gmail.com',
 ]
 LICENSE = ''
-URL = ''
-DESCRIPTION = 'Hacking In Python\'s Parameter Definition!'
+URL = 'https://github.com/huntzhan/magic-constraints'
+DESCRIPTION = 'Magic Type Introspection And Parameter Checking.'
