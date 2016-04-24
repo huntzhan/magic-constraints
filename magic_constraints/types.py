@@ -345,3 +345,6 @@ Iterator = IteratorGenerator(abc.Iterator)
 Iterable = IterableGenerator(abc.Iterable)
 
 Union = UnionGenerator(Any)
+
+# forward other types.
+NoneType = type(None)

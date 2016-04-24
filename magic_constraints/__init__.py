@@ -40,6 +40,8 @@ from magic_constraints.types import (
 
     Any,
     Union,
+
+    NoneType,
 )
 
 __all__ = [
@@ -71,4 +73,6 @@ __all__ = [
 
     'Any',
     'Union',
+
+    'NoneType',
 ]

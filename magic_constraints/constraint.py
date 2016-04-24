@@ -248,10 +248,7 @@ def build_parameter_in_inspection(name, type_, sig_parameter):
 
 
 def build_return_type_in_inspection(return_type):
-    if return_type is None:
-        return ReturnType(type(None)),
-
-    elif return_type is SigParameter.empty:
+    if return_type is SigParameter.empty:
         return ReturnType(Any, nullable=True)
 
     elif type_object(return_type):

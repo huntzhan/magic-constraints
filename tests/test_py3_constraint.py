@@ -5,17 +5,10 @@ from __future__ import (
 from builtins import *                  # noqa
 from future.builtins.disabled import *  # noqa
 
-import sys
 import pytest
 from magic_constraints import *  # noqa
 from magic_constraints.utils import (
     repr_return,
-)
-
-
-pytestmark = pytest.mark.skipif(
-    sys.version_info.major < 3,
-    reason="future problem.",
 )
 
 
@@ -55,3 +48,9 @@ def test_repr():
             name='a', type_=Sequence[int], nullable=True, default=[1, 2, 3],
         ))
     )
+
+
+def test_corner_case():
+
+    with pytest.raises(SyntaxError):
+        ReturnType(int, default=1)

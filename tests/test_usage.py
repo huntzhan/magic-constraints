@@ -131,11 +131,22 @@ def test_class_initialization_constraints():
 
 def test_corner_cases1():
 
-    with pytest.raises(SyntaxError):
+    with pytest.raises(TypeError):
         @function_constraints(
-            list(),
+            Parameter('a', int),
+            1,
+            Parameter('b', int),
         )
-        def example(args):
+        def func1(args):
+            pass
+
+    with pytest.raises(TypeError):
+        @function_constraints(
+            Parameter('a', int),
+            Parameter('b', int),
+            1,
+        )
+        def func2(args):
             pass
 
     with pytest.raises(TypeError):
@@ -148,14 +159,21 @@ def test_corner_cases1():
         @function_constraints(
             int, float,
         )
-        def func1(a):
+        def func3(a):
             pass
 
     with pytest.raises(SyntaxError):
         @function_constraints(
             int, float,
         )
-        def func2(*a, **b):
+        def func4(*a, **b):
+            pass
+
+    with pytest.raises(TypeError):
+        @function_constraints(
+            int, 1,
+        )
+        def func5(a, b):
             pass
 
 
