@@ -7,6 +7,8 @@
 
 ## Introduction
 
+**v0.2 is not released yet. This document is UNSTABLE!!!!!!! Might change a lot in the future.**
+
 `magic-constraints` supports:
 
 1. [type introspection][2] on "specialized" [abstract base classes][1] (kind of).
