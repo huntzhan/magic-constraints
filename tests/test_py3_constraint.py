@@ -50,5 +50,8 @@ def test_repr():
 
 def test_corner_case():
 
+    with pytest.raises(TypeError):
+        Parameter('a', int, default=None)
+
     with pytest.raises(SyntaxError):
         ReturnType(int, default=1)

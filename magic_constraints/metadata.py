@@ -5,7 +5,7 @@ from __future__ import (
 
 
 NAME = 'magic_constraints'
-VERSION = '0.3.0-rc-0'
+VERSION = '0.3.0'
 AUTHORS = [
     'huntzhan',
 ]

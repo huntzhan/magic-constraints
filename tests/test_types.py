@@ -221,3 +221,6 @@ def test_corner_cases():
     assert not issubclass(1, Sequence)
     assert not issubclass(int, ImmutableSequence)
     assert not isinstance(int, ImmutableSequence)
+
+    assert not isinstance(1, Optional)
+    assert not issubclass(int, Optional)
