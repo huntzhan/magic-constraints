@@ -4,8 +4,6 @@
   Status](https://travis-ci.org/huntzhan/magic-constraints.svg?branch=master)](https://travis-ci.org/huntzhan/magic-constraints)
 [![Coverage Status](https://coveralls.io/repos/github/huntzhan/magic-constraints/badge.svg?branch=master)](https://coveralls.io/github/huntzhan/magic-constraints?branch=master) 
 
-**v0.2 is not released yet. This document is UNSTABLE!!!!!!! Might change a lot in the future.**
-
 # Introduction
 
 `magic-constraints`:
