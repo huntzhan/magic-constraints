@@ -14,9 +14,9 @@
   from magic_constraints import function_constraints
   
   @function_constraints
-  def function(foobar: int=None) -> float:
+  def function(foobar: Optional[int]=None) -> float:
       if foobar is None:
-          # should fail the return type checking.
+          # should fail the return type checkin.
           return 42
       else:
           # good case.
@@ -106,6 +106,7 @@ from magic_constraints import (
     
     Any,
     Union,
+    Optional,
     NoneType,
 )
 ```
@@ -220,6 +221,7 @@ iterator ::=    Iterator
 
 speical  ::=  | Union             [ type, ... ]
               | Any
+              | Optional          [ type ]
               | NoneType
               
 ```
@@ -279,6 +281,8 @@ for i in Iterator[int](iter([1, 2, 3])):
 `Union[ type, ... ]` acceps instance that match one of `type, ...`. For example, `isinstance(42, Union[int, float]` returns `True`.
 
 `Any` accepts any object, including type and non-type objects. It's guaranteed that `isinstance(..., Any)` returns `True` and `issubclass(..., Any)` returns `True`.
+
+`Optional[T]` is equivalent to `Union[T, NoneType]`. 
 
 `NoneType` is an alias of `type(None)`.
 
@@ -346,6 +350,8 @@ def func2() -> Any:
     pass
 ```
 
+Type checking on the default value happens during function inspection. If default value is not an instance of corresponding type annotation, a `TypeError` will be raised.
+
 ### `function_constraints(*type_objects, return_type=Any)`
 
 Example:
@@ -353,9 +359,10 @@ Example:
 ```python
 @function_constraints(
     str, Sequence[int],
-    return_type=Mapping[str, Sequence[int]],
+    # return value could be None or a sequence of ints.
+    return_type=Optional[Mapping[str, Sequence[int]]],
 )
-def func2(foo, bar=None):
+def func2(foo, bar):
     return {foo: bar}
 ```
 
@@ -365,10 +372,7 @@ number of parameters in the decorated function. Keyword-only parameter `return_t
 There are rules should be followed:
 
 * Only parameters with the the kind of `POSITIONAL_ONLY` or `POSITIONAL_OR_KEYWORD` are accepted, see [inspect.Parameter.kind][12] for more information.
-* Parameter without default value is treated as non-`nullable` and with no `default` value. `nullable` and `default` will be explained in the usage of `Parameter`.
-* Parameter with `None` as its default value is treated as `nullable` and with `default` bound to `None`.
-* Parameter with any default value other than `None` is treated as non-`nullable` and with `default` bound to such value.
-
+* If default value exists and it is not an instance of corresponding type, a `TypeError` will be raised.
 
 ### `function_constraints(*contraints)`
 
@@ -378,7 +382,8 @@ Example:
 # explicitly declare Parameter and ReturnType.
 @function_constraints(
     Parameter('foo', str),
-    Parameter('bar', Sequence[int], nullable=True, default=[1, 2, 3]),
+    # bar accepts None or a sequence of ints.
+    Parameter('bar', Optional[Sequence[int]], default=[1, 2, 3]),
     ReturnType(Mapping[str, Sequence[int]]),
 )
 def func3(args):
@@ -391,21 +396,18 @@ In this case, `contraints` accepts one or more instances of `Parameter` and `Ret
 * `contraints` could only contains instances of `Parameter` and `ReturnType`, otherwise a `TypeError` will be raised.
 * Instance of `ReturnType` can be omitted. If omitted, there's no restriction on the return value. If not omitted, instance of `ReturnType` must be placed as the last element of `contraints`, otherwise a `SyntaxError` will be raised.
 
-After checking the input arguments in runtime, thoses arguments will
+After checking the input arguments in runtime, those arguments will
 be bound to a single object as its attributes. Hence, user-defined function, that is, the one decorated by `function_constraints`
 should accept only one `POSITIONAL_ONLY` argument.
 
-#### `Parameter(name, type_, nullable=False, default=None, validator=None)`
+#### `Parameter(name, type_, default=None, validator=None)`
 
 * `name` is name of parameter. `name` must follows [the rule of defining identifier][13] of Python.
 * `type_` defines the type valid argument, should be a type object.
-* (optional) `nullable=True` means the parameter can accept `None` as its value. If omitted, `nullable=False`, meaning that `None` is not accepted. But there are some exceptional cases:
-  * If `type_` is `Any`, `nullable` is ignored, since `Any` could accept any kinds of argument.
-  * If `type_` is `NoneType`, `nullable` is ignored, since `NoneType` is the type of `None`.
 * (optional) `default` defines the default value of parameter. If omitted and there is no argument could be bound to the parameter in the runtime, a `SyntaxError` will be raised.
 * (optional) `validator` accepts a callable with a single positional argument and returns a boolean value. If defined, `validator` will be invoked after the type introspection. If `validator` returns `False`, a `TypeError` will be raised.
 
-#### `ReturnType(type_, nullable=False, validator=None)`
+#### `ReturnType(type_, validator=None)`
 
 `ReturnType` accepts less arguments than `Parameter`. The meaning of `ReturnType`'s parameter is identical to `Parameter`, see `Parameter` for the details.
 
@@ -435,7 +437,7 @@ class Example(object):
 
     @classmethod
     @method_constraints(
-        int, float, int, str,
+        int, float, int, Optional[str],
     )
     def method2(cls, a, b, c=42, d=None):
         return a, b, c, d
@@ -444,7 +446,7 @@ class Example(object):
         Parameter('a', int),
         Parameter('b', float),
         Parameter('c', int, default=42),
-        Parameter('d', str, nullable=True, default=None),
+        Parameter('d', Optional[str], default=None),
     )
     def method3(self, args):
         return args.a, args.b, args.c, args.d
