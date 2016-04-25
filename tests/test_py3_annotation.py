@@ -91,3 +91,17 @@ def test_corner_case():
 
     with pytest.raises(TypeError):
         function_constraints(int)(1)
+
+
+def test_return_type_annotation():
+
+    @function_constraints
+    def func1():
+        pass
+
+    @function_constraints
+    def func2() -> Any:
+        pass
+
+    func1()
+    func2()

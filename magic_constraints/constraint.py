@@ -59,13 +59,18 @@ class Constraint(object):
             self._arguments_repr = suffix
 
     def check_argument(self, instance):
+        if self.type_ is Any:
+            return True
+
         if instance is None:
             if not (self.nullable or issubclass(self.type_, type(None))):
                 return False
             else:
                 return self.validator(None)
+
         if not isinstance(instance, self.type_):
             return False
+
         return self.validator(instance)
 
     def init_arguments_repr_prefix(self, type_, **options):
@@ -186,7 +191,7 @@ def build_constraints_package(constraints):
         return_type = constraints[-1]
     else:
         parameters = constraints
-        return_type = ReturnType(Any, nullable=True)
+        return_type = ReturnType(Any)
 
     name_hash, start_of_defaults = check_and_preprocess_parameters(parameters)
 
@@ -249,7 +254,7 @@ def build_parameter_in_inspection(name, type_, sig_parameter):
 
 def build_return_type_in_inspection(return_type):
     if return_type is SigParameter.empty:
-        return ReturnType(Any, nullable=True)
+        return ReturnType(Any)
 
     elif type_object(return_type):
         return ReturnType(return_type)
