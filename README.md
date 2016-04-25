@@ -16,7 +16,7 @@
   @function_constraints
   def function(foobar: int=None) -> float:
       if foobar is None:
-          # should fail the return type checkin.
+          # should fail the return type checking.
           return 42
       else:
           # good case.

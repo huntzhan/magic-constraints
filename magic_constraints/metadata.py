@@ -5,7 +5,7 @@ from __future__ import (
 
 
 NAME = 'magic_constraints'
-VERSION = '0.2.0'
+VERSION = '0.3.0-rc-0'
 AUTHORS = [
     'huntzhan',
 ]
@@ -14,4 +14,6 @@ EMAILS = [
 ]
 LICENSE = ''
 URL = 'https://github.com/huntzhan/magic-constraints'
-DESCRIPTION = 'Magic Type Introspection And Parameter Checking.'
+DESCRIPTION = (
+    'Magic Type Introspection And Runtime Parameter Type/Value Checking.'
+)
