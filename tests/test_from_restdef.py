@@ -47,8 +47,8 @@ def test_none():
     class Case(object):
 
         INIT_PARAMETERS = [
-            Parameter('a', int, nullable=True, default=None),
-            Parameter('b', list, nullable=True, default=None),
+            Parameter('a', Optional[int], default=None),
+            Parameter('b', Optional[list], default=None),
         ]
 
     Case()
@@ -151,7 +151,7 @@ def test_none_2():
     class Case1(object):
 
         INIT_PARAMETERS = [
-            Parameter('a', int, nullable=True, default=None),
+            Parameter('a', Optional[int], default=None),
         ]
 
     @class_initialization_constraints
@@ -224,7 +224,7 @@ def test_corner_case():
 
             INIT_PARAMETERS = [
                 Parameter('a', bool),
-                Parameter('with_default', bool, default=None),
+                Parameter('with_default', bool, default=True),
                 Parameter('without_default', bool),
             ]
 
@@ -274,12 +274,12 @@ def test_types():
 
         INIT_PARAMETERS = [
             Parameter(
-                'a', Sequence[int],
-                nullable=True, default=None,
+                'a', Optional[Sequence[int]],
+                default=None,
             ),
             Parameter(
-                'b', MutableSequence[Union[int, float]],
-                nullable=True, default=None,
+                'b', Optional[MutableSequence[Union[int, float]]],
+                default=None,
             ),
         ]
 

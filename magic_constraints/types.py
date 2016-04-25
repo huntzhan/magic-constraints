@@ -319,6 +319,24 @@ class UnionGenerator(MagicTypeGenerator):
         return False
 
 
+class OptionalGenerator(MagicTypeGenerator):
+
+    def check_getitem_type_decl(type_decl):
+        return type_object(type_decl)
+
+    def __subclasshook__(cls, subclass):
+        return False
+
+    def __instancecheck__(cls, instance):
+        if cls.partial_cls is None:
+            return False
+
+        if instance is None:
+            return True
+        else:
+            return isinstance(instance, cls.partial_cls)
+
+
 ABCImmutableSequence = generate_immutable_abc(
     abc.Sequence, abc.MutableSequence,
 )
@@ -345,6 +363,5 @@ Iterator = IteratorGenerator(abc.Iterator)
 Iterable = IterableGenerator(abc.Iterable)
 
 Union = UnionGenerator(Any)
-
-# forward other types.
+Optional = OptionalGenerator(Any)
 NoneType = type(None)

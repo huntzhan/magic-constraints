@@ -35,7 +35,7 @@ def test_function_constraints_pass_by_compound():
 def test_function_constraints_pass_by_positional():
 
     @function_constraints(
-        int, float, int, int,
+        int, float, int, Optional[int],
     )
     def example(a, b, c=42, d=None):
         assert a == 1
@@ -198,8 +198,8 @@ def test_return_type():
         func2(1)
 
     @function_constraints(
-        Parameter('a', int, nullable=True),
-        ReturnType(float, nullable=True),
+        Parameter('a', Optional[int]),
+        ReturnType(Optional[float]),
     )
     def func3(args):
         return args.a
@@ -218,8 +218,8 @@ def test_return_type():
             return a
 
         @method_constraints(
-            Parameter('a', int, nullable=True),
-            ReturnType(float, nullable=True),
+            Parameter('a', Optional[int], default=None),
+            ReturnType(Optional[float]),
         )
         def func2(self, args):
             return args.a
@@ -232,7 +232,7 @@ def test_return_type():
         e.func2(1)
 
     @function_constraints(
-        ReturnType(float, nullable=True),
+        ReturnType(Optional[float]),
     )
     def func4(args):
         return None

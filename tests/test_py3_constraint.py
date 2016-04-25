@@ -28,11 +28,10 @@ def test_repr():
         repr_return(
             "Parameter("
             "name='a', "
-            "type_=Sequence[int], "
-            "nullable=True"
+            "type_=Sequence[int]"
             ")"
         ) ==
-        repr(Parameter(name='a', type_=Sequence[int], nullable=True))
+        repr(Parameter(name='a', type_=Sequence[int]))
     )
     # test keyword sorting.
     assert (
@@ -40,12 +39,11 @@ def test_repr():
             "Parameter("
             "name='a', "
             "type_=Sequence[int], "
-            "default=[1, 2, 3], "
-            "nullable=True"
+            "default=[1, 2, 3]"
             ")"
         ) ==
         repr(Parameter(
-            name='a', type_=Sequence[int], nullable=True, default=[1, 2, 3],
+            name='a', type_=Sequence[int], default=[1, 2, 3],
         ))
     )
 

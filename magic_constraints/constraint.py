@@ -30,11 +30,7 @@ class Constraint(object):
         raise_on_nontype_object(type_)
         self.type_ = type_
 
-        # key only arguemnt.
-        # 1. if nullable, None is accepted.
-        self.nullable = options.get('nullable', False)
-
-        # 2. record default value.
+        # 1. record default value.
         # NOTICE that ReturnType do not support default.
         if 'default' in options:
             self.with_default = True
@@ -43,7 +39,7 @@ class Constraint(object):
             self.with_default = False
             self.default = None
 
-        # 3. user-defined validator on input argument.
+        # 2. user-defined validator on input argument.
         self.validator = options.get(
             'validator', lambda instance: True,
         )
@@ -58,16 +54,14 @@ class Constraint(object):
         else:
             self._arguments_repr = suffix
 
+        # check default.
+        if self.with_default and not self.check_argument(self.default):
+            raise MagicTypeError(
+                'default value unmatched.',
+                parameter=self,
+            )
+
     def check_argument(self, instance):
-        if self.type_ is Any:
-            return True
-
-        if instance is None:
-            if not (self.nullable or issubclass(self.type_, type(None))):
-                return False
-            else:
-                return self.validator(None)
-
         if not isinstance(instance, self.type_):
             return False
 
@@ -244,11 +238,7 @@ def build_parameter_in_inspection(name, type_, sig_parameter):
     if default is SigParameter.empty:
         # without default.
         return Parameter(name, annotation)
-    elif default is None:
-        # with None as default.
-        return Parameter(name, annotation, nullable=True, default=None)
     else:
-        # with non-None as default.
         return Parameter(name, annotation, default=default)
 
 

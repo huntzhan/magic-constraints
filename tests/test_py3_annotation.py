@@ -18,8 +18,8 @@ def test_function_annotation():
     assert 3.0 == func1(1, 2.0)
 
     @function_constraints
-    def func2(foo: int, bar: float=None) -> float:
-        if bar is None:
+    def func2(foo: int, bar: Optional[float]=None) -> float:
+        if foo == 42:
             # should fail the return type checkin.
             return 42
         else:
@@ -28,7 +28,7 @@ def test_function_annotation():
 
     assert 3.0 == func2(1, 2.0)
     with pytest.raises(TypeError):
-        func2(1)
+        func2(42)
 
 
 def test_method_annotation():
@@ -41,8 +41,8 @@ def test_method_annotation():
             return foo + bar
 
         @method_constraints
-        def func2(self, foo: int, bar: float=None) -> float:
-            if bar is None:
+        def func2(self, foo: int, bar: Optional[float]=None) -> float:
+            if foo == 42:
                 # should fail the return type checkin.
                 return 42
             else:
@@ -53,7 +53,7 @@ def test_method_annotation():
     e = Example()
     assert 3.0 == e.func2(1, 2.0)
     with pytest.raises(TypeError):
-        e.func2(1)
+        e.func2(42)
 
 
 def test_corner_case():
