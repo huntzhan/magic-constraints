@@ -14,7 +14,11 @@ from magic_constraints.exception import (
     MagicTypeError,
 )
 
-from magic_constraints.constraint import Parameter, ReturnType
+from magic_constraints.constraint import (
+    Constraint,
+    Parameter,
+    ReturnType,
+)
 
 from magic_constraints.decorator import (
     function_constraints,
@@ -49,6 +53,7 @@ __all__ = [
     'MagicSyntaxError',
     'MagicTypeError',
 
+    'Constraint',
     'Parameter',
     'ReturnType',
 
