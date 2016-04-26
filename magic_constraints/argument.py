@@ -84,7 +84,7 @@ def check_and_bind_arguments(parameters, slots, bind_callback):
         parameter = parameters[i]
 
         # check.
-        if not parameter.check_argument(arg):
+        if not parameter.check_instance(arg):
             raise MagicTypeError(
                 'argument unmatched.',
                 parameter=parameter,

@@ -58,7 +58,7 @@ def decorator_dispather(args, options,
 
 
 def check_ret(ret, return_type):
-    if not return_type.check_argument(ret):
+    if not return_type.check_instance(ret):
         raise MagicTypeError(
             'return value unmatched.',
             return_type=return_type,

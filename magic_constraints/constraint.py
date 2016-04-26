@@ -55,13 +55,13 @@ class Constraint(object):
             self._arguments_repr = suffix
 
         # check default.
-        if self.with_default and not self.check_argument(self.default):
+        if self.with_default and not self.check_instance(self.default):
             raise MagicTypeError(
                 'default value unmatched.',
                 parameter=self,
             )
 
-    def check_argument(self, instance):
+    def check_instance(self, instance):
         if not isinstance(instance, self.type_):
             return False
 
