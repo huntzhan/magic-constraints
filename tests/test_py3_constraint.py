@@ -48,6 +48,18 @@ def test_repr():
     )
 
 
+def test_constraints():
+
+    def validator(val, expected, *args, **kwargs):
+        return val == expected
+
+    c = Constraint(int, validator=validator)
+    assert c.check_instance(42, 42)
+    assert not c.check_instance(42, 43)
+
+    c.check_instance(42, 43, 123, 123, a=1)
+
+
 def test_corner_case():
 
     with pytest.raises(TypeError):

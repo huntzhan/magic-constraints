@@ -17,9 +17,12 @@ from magic_constraints.exception import (
     MagicTypeError,
 )
 from magic_constraints.utils import (
-    type_object, nontype_object,
+    type_object,
+    nontype_object,
     raise_on_nontype_object,
-    repr_return, conditional_repr,
+    repr_return,
+    conditional_repr,
+    return_true,
 )
 
 
@@ -41,7 +44,7 @@ class Constraint(object):
 
         # 2. user-defined validator on input argument.
         self.validator = options.get(
-            'validator', lambda instance: True,
+            'validator', return_true,
         )
 
         # generator serialized string for repr.
@@ -61,11 +64,11 @@ class Constraint(object):
                 parameter=self,
             )
 
-    def check_instance(self, instance):
+    def check_instance(self, instance, *args, **kwargs):
         if not isinstance(instance, self.type_):
             return False
 
-        return self.validator(instance)
+        return self.validator(instance, *args, **kwargs)
 
     def init_arguments_repr_prefix(self, type_, **options):
         return ''

@@ -62,6 +62,10 @@ def conditional_repr(obj):
         return repr(obj)
 
 
+def return_true(*args, **kwargs):
+    return True
+
+
 from magic_constraints.exception import (
     # MagicSyntaxError,
     MagicTypeError,
