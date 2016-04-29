@@ -320,7 +320,8 @@ class CallableGenerator(MagicTypeGenerator):
         parameters_types, return_type = self.partial_cls
         self._wrapper = function_constraints(
             *parameters_types,
-            return_type=return_type,
+            # tailing coma is invalid for version < 3.5.
+            return_type=return_type
         )(instance)
 
     def __call__(self, *args, **kwargs):
