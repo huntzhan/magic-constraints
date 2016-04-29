@@ -122,6 +122,8 @@ def test_iterator():
     assert isinstance(iter([1, 2]), Iterator)
     assert not isinstance([1, 2], Iterator)
 
+    assert not isinstance(iter([1, 2]), Iterator[int])
+
     for _ in Iterator[int](iter([1, 2])):
         pass
 

@@ -260,7 +260,11 @@ class IteratorGenerator(MagicTypeGenerator):
             )
 
     def __instancecheck__(cls, instance):
-        return check_type_of_instance(cls, instance)
+        if cls.partial_cls or not check_type_of_instance(cls, instance):
+            return False
+        else:
+            # is Iterator and not Iterator[T, ...].
+            return True
 
 
 class IterableGenerator(MagicTypeGenerator):
