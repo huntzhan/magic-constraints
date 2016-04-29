@@ -4,7 +4,7 @@ from __future__ import (
 )
 from builtins import *                  # noqa
 from future.builtins.disabled import *  # noqa
-import types
+import collections as abc
 
 from magic_constraints.exception import (
     MagicSyntaxError,
@@ -48,7 +48,7 @@ def decorator_dispather(args, options,
     elif isinstance(args[0], Constraint):
         return by_compound(args, options)
 
-    elif len(args) == 1 and isinstance(args[0], types.FunctionType):
+    elif len(args) == 1 and isinstance(args[0], abc.Callable):
         return by_inspection(args[0])
 
     else:

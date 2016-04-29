@@ -42,6 +42,8 @@ from magic_constraints.types import (
     Iterator,
     Iterable,
 
+    Callable,
+
     Any,
     Union,
     Optional,
@@ -75,6 +77,8 @@ __all__ = [
 
     'Iterator',
     'Iterable',
+
+    'Callable',
 
     'Any',
     'Union',

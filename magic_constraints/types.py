@@ -103,6 +103,8 @@ def CreateMagicType(generator_cls, MetaMagicType, ABC):
             # iterator.
             '__iter__',
             '__next__',
+            # callable.
+            '__call__',
         ]:
             if unbound_getattr(generator_cls, attr):
                 locals()[attr] = unbound_getattr(generator_cls, attr)
@@ -119,10 +121,17 @@ class MagicTypeGenerator(type):
 
 def check_type_of_instance(cls, instance):
     return any(
-        issubclass(t, cls)
+        issubclass(T, cls)
         # handle old style class.
-        for t in (instance.__class__, type(instance))
+        for T in (instance.__class__, type(instance))
     )
+
+
+def check_getitem_tuple(type_decl, n):
+    # type_decl should be a n-tuple.
+    if not isinstance(type_decl, tuple):
+        return False
+    return len(type_decl) == n
 
 
 def generate_immutable_abc(supercls, mutable_subclass):
@@ -150,8 +159,8 @@ class SequenceGenerator(MagicTypeGenerator):
             return True
 
         if isinstance(type_decl, tuple):
-            for t in type_decl:
-                if nontype_object(t):
+            for T in type_decl:
+                if nontype_object(T):
                     return False
             return True
         else:
@@ -201,10 +210,9 @@ class SetGenerator(MagicTypeGenerator):
 class MappingGenerator(MagicTypeGenerator):
 
     def check_getitem_type_decl(type_decl):
-        if type_object(type_decl) or not isinstance(type_decl, tuple):
+        if not check_getitem_tuple(type_decl, 2):
             return False
-        if len(type_decl) != 2:
-            return False
+
         return type_object(type_decl[0]) and type_object(type_decl[1])
 
     def __instancecheck__(cls, instance):
@@ -281,6 +289,51 @@ class IterableGenerator(MagicTypeGenerator):
         return check_type_of_instance(cls, instance)
 
 
+class CallableGenerator(MagicTypeGenerator):
+
+    def check_getitem_type_decl(type_decl):
+        # Callable[[T, ...], T]
+        if not check_getitem_tuple(type_decl, 2):
+            return False
+        if not isinstance(type_decl[0], abc.Iterable) or\
+                nontype_object(type_decl[1]):
+            return False
+        for T in type_decl[0]:
+            if nontype_object(T):
+                return False
+
+        return True
+
+    def __init__(self, instance):
+        # 1. not Callable.
+        if not isinstance(instance, self.main_cls):
+            raise MagicTypeError(
+                'instance should be a Callable.',
+                instance=instance,
+            )
+        # 2. with no specification.
+        if not self.partial_cls:
+            raise MagicSyntaxError(
+                'Callable should be specified to wrap the callable.',
+            )
+
+        parameters_types, return_type = self.partial_cls
+        self._wrapper = function_constraints(
+            *parameters_types,
+            return_type=return_type,
+        )(instance)
+
+    def __call__(self, *args, **kwargs):
+        return self._wrapper(*args, **kwargs)
+
+    def __instancecheck__(cls, instance):
+        if cls.partial_cls or not check_type_of_instance(cls, instance):
+            return False
+        else:
+            # is callable and not Callable[T, ...].
+            return True
+
+
 class AnyMeta(ABCMeta):
 
     def __instancecheck__(cls, instance):
@@ -300,8 +353,8 @@ class UnionGenerator(MagicTypeGenerator):
         if type_object(type_decl) or not isinstance(type_decl, tuple):
             return False
 
-        for t in type_decl:
-            if nontype_object(t):
+        for T in type_decl:
+            if nontype_object(T):
                 return False
         else:
             return True
@@ -362,6 +415,11 @@ ImmutableMapping = MappingGenerator(ABCImmutableMapping)
 Iterator = IteratorGenerator(abc.Iterator)
 Iterable = IterableGenerator(abc.Iterable)
 
+Callable = CallableGenerator(abc.Callable)
+
 Union = UnionGenerator(Any)
 Optional = OptionalGenerator(Any)
 NoneType = type(None)
+
+
+from magic_constraints.decorator import function_constraints  # noqa

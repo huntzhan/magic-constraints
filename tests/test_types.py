@@ -197,6 +197,22 @@ def test_union():
         Union[1]
 
 
+def test_callable():
+
+    def c1(a, b=1): pass
+
+    assert isinstance(c1, Callable)
+    assert isinstance(lambda a, b: None, Callable)
+
+    Callable[[int, int], Any]
+
+    c1_wrapper = Callable[[int, int], Any](c1)
+
+    c1_wrapper(42, 42)
+    with pytest.raises(TypeError):
+        c1_wrapper(42, 42.0)
+
+
 @pytest.mark.xfail(
     sys.version_info.major > 2,
     reason="future problem.",
