@@ -16,7 +16,7 @@
   @function_constraints
   def function(foobar: Optional[int]=None) -> float:
       if foobar is None:
-          # should fail the return type checkin.
+          # should fail the return type checking.
           return 42
       else:
           # good case.
@@ -217,7 +217,6 @@ iterable ::=    Iterable
 
 iterator ::=    Iterator
               | Iterator          [ type ]
-              | Iterator          [ type, ... ]
 
 speical  ::=  | Union             [ type, ... ]
               | Any
