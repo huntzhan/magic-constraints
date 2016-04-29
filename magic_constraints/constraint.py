@@ -63,6 +63,16 @@ class Constraint(object):
                 parameter=self,
             )
 
+    def wrapper_for_deferred_checking(self):
+        # TODO: fix this dirty implementation.
+        if not hasattr(self.type_, 'main_cls'):
+            return None
+        if issubclass(self.type_.main_cls, (abc.Iterator, abc.Callable)) and\
+                self.type_.partial_cls:
+            return self.type_
+        else:
+            return None
+
     def check_instance(self, instance, *args, **kwargs):
         if not isinstance(instance, self.type_):
             return False
@@ -318,4 +328,6 @@ def build_constraints_with_given_type_args(
     return constraints
 
 
-from magic_constraints.types import Any  # noqa
+from magic_constraints.types import (
+    Any,
+)  # noqa

@@ -246,3 +246,30 @@ def test_return_type():
         return 42
 
     func5()
+
+
+def test_defered_checking():
+
+    @function_constraints(Callable[[int], Any])
+    def func1(f):
+        f(42)
+
+    @function_constraints(Callable[[int], Any])
+    def func2(f):
+        f(42.0)
+
+    def whatever(num):
+        pass
+
+    @function_constraints(Iterator[int])
+    def func3(iter_):
+        for _ in iter_:
+            pass
+
+    func1(whatever)
+    with pytest.raises(TypeError):
+        func2(whatever)
+
+    func3(iter([1, 2, 3]))
+    with pytest.raises(TypeError):
+        func3(iter([1, 2.0, 3]))
