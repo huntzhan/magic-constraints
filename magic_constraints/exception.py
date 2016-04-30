@@ -50,4 +50,8 @@ class MagicTypeError(MagicError, TypeError):
     pass
 
 
+class MagicIndexError(MagicError, IndexError):
+    pass
+
+
 from magic_constraints.utils import repr_return  # noqa

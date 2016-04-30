@@ -10,7 +10,7 @@ from abc import ABCMeta
 # collections.abc dosn't esist in Python 2.x.
 import collections as abc
 
-from magic_constraints.exception import MagicTypeError
+from magic_constraints.exception import MagicTypeError, MagicIndexError
 
 
 def unbound_getattr(target, name):
@@ -227,21 +227,49 @@ class MappingGenerator(MagicTypeGenerator):
         return True
 
 
+ITERATOR_CASE_LENGTH = 1
+ITERATOR_CASE_NO_LENGTH = 2
+
+
 class IteratorGenerator(MagicTypeGenerator):
 
     def check_getitem_type_decl(type_decl):
-        return type_object(type_decl)
+        # 1. Iterator[T, ...]
+        if isinstance(type_decl, tuple):
+            for T in type_decl:
+                if nontype_object(T):
+                    return False
+            return True
+
+        # 2. Iterator[T]
+        elif type_object(type_decl):
+            return True
+
+        else:
+            return False
 
     def __init__(self, iterator):
         if self.partial_cls is None:
             raise MagicTypeError(
-                'require T on Iterator[T].'
+                'Iterator should be specified.'
             )
-        if not isinstance(iterator, abc.Iterator):
+
+        if not isinstance(iterator, self.main_cls):
             raise MagicTypeError(
                 'require Iterator.',
                 iterator=iterator,
             )
+
+        if isinstance(self.partial_cls, tuple):
+            # Iterator[T, ...]. Checking on:
+            # 1. the number of elements in the iterator.
+            # 2. the type of each element.
+            self.case = ITERATOR_CASE_LENGTH
+            self._type_idx = 0
+        else:
+            # Iterator[T]. Check only the type of element. There's no
+            # limitation on the length of iterator.
+            self.case = ITERATOR_CASE_NO_LENGTH
 
         self.iterator = iterator
 
@@ -250,14 +278,35 @@ class IteratorGenerator(MagicTypeGenerator):
 
     def __next__(self):
         element = next(self.iterator)
-        if isinstance(element, self.partial_cls):
+
+        if self.case == ITERATOR_CASE_LENGTH:
+            # error 1.
+            if self._type_idx >= len(self.partial_cls):
+                raise MagicIndexError(
+                    'iterator contains more elements declared in type.',
+                    type_=self,
+                    last_element=element,
+                )
+
+            # error 2.
+            if not isinstance(element, self.partial_cls[self._type_idx]):
+                raise MagicTypeError(
+                    'type unmatched.',
+                    element=element,
+                    type_=self.partial_cls[self._type_idx],
+                )
+
+            # good case.
+            self._type_idx += 1
             return element
-        else:
-            raise MagicTypeError(
-                'type unmatched.',
-                element=element,
-                type_=self.partial_cls,
-            )
+
+        elif self.case == ITERATOR_CASE_NO_LENGTH:
+            if not isinstance(element, self.partial_cls):
+                raise MagicTypeError(
+                    'type unmatched.',
+                    element=element,
+                    type_=self.partial_cls,
+                )
 
     def __instancecheck__(cls, instance):
         if cls.partial_cls or not check_type_of_instance(cls, instance):
@@ -302,6 +351,7 @@ class CallableGenerator(MagicTypeGenerator):
         if not isinstance(type_decl[0], abc.Iterable) or\
                 nontype_object(type_decl[1]):
             return False
+        # [T, ...]
         for T in type_decl[0]:
             if nontype_object(T):
                 return False

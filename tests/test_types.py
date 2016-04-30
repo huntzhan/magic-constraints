@@ -127,6 +127,14 @@ def test_iterator():
     for _ in Iterator[int](iter([1, 2])):
         pass
 
+    Iterator[int, int, int]
+
+    for _ in Iterator[int, int](iter([1, 2])):
+        pass
+
+    for _ in Iterator[int, float](iter([1, 2.0])):
+        pass
+
     with pytest.raises(TypeError):
         Iterator([1, 2])
     with pytest.raises(TypeError):
@@ -135,8 +143,16 @@ def test_iterator():
     with pytest.raises(TypeError):
         for _ in Iterator[int](iter([1, 2.0])):
             pass
+
     with pytest.raises(TypeError):
-        Iterator[int, int]
+        for _ in Iterator[int, int](iter([1, 2.0])):
+            pass
+
+    # lazy evaluation.
+    it = Iterator[int, int](iter([1, 2, 3]))
+    with pytest.raises(IndexError):
+        for _ in it:
+            pass
 
     assert isinstance(
         (i for i in range(10)),

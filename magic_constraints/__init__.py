@@ -12,6 +12,7 @@ from magic_constraints.exception import (
     MagicError,
     MagicSyntaxError,
     MagicTypeError,
+    MagicIndexError,
 )
 
 from magic_constraints.constraint import (
@@ -54,6 +55,7 @@ __all__ = [
     'MagicError',
     'MagicSyntaxError',
     'MagicTypeError',
+    'MagicIndexError',
 
     'Constraint',
     'Parameter',
