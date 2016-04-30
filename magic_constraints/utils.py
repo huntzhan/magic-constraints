@@ -6,8 +6,7 @@ from builtins import *                  # noqa
 from future.builtins.disabled import *  # noqa
 
 import sys
-import types
-from abc import ABCMeta
+import collections as abc
 
 
 class CompoundArgument(object):
@@ -31,11 +30,11 @@ def nontype_object(obj):
     return not type_object(obj)
 
 
-def raise_on_non_function(function):
-    if not isinstance(function, types.FunctionType):
+def raise_on_non_callable(callable_):
+    if not isinstance(callable_, abc.Callable):
         raise MagicTypeError(
-            'require FunctionType.',
-            function=function,
+            'require Callable.',
+            callable_=callable_,
         )
 
 
@@ -54,10 +53,11 @@ def repr_return(text):
 
 
 def conditional_repr(obj):
-    if isinstance(obj, ABCMeta) and hasattr(obj, 'main_cls'):
-        return repr(obj)
-    elif type_object(obj):
-        return obj.__name__
+    if type_object(obj):
+        if issubclass(obj, BasicMagicType):
+            return repr(obj)
+        else:
+            return obj.__name__
     else:
         return repr(obj)
 
@@ -67,6 +67,8 @@ def return_true(*args, **kwargs):
 
 
 from magic_constraints.exception import (
-    # MagicSyntaxError,
     MagicTypeError,
+)  # noqa
+from magic_constraints.types import (
+    BasicMagicType,
 )  # noqa

@@ -29,8 +29,10 @@ from magic_constraints.argument import (
 from magic_constraints.utils import (
     CompoundArgument,
     AttributesBinder,
+
     type_object,
-    raise_on_non_function,
+
+    raise_on_non_callable,
     raise_on_nontype_object,
 )
 
@@ -77,7 +79,7 @@ def check_ret(ret, return_type):
 def _function_constraints_pass_by_positional_args(type_args, options):
 
     def decorator(function):
-        raise_on_non_function(function)
+        raise_on_non_callable(function)
 
         input_type_args = [function, False, type_args]
         if 'return_type' in options:
@@ -118,7 +120,7 @@ def _function_constraints_pass_by_compound_args(constraints, options):
     constraints_package = build_constraints_package(constraints)
 
     def decorator(function):
-        raise_on_non_function(function)
+        raise_on_non_callable(function)
 
         def wrapper(*args, **kwargs):
 
@@ -143,7 +145,7 @@ def _function_constraints_pass_by_compound_args(constraints, options):
 # def function(foo: int, bar: float) -> float:
 #     return foo + bar
 def _function_constraints_by_inspection(function):
-    raise_on_non_function(function)
+    raise_on_non_callable(function)
 
     constraints_package = build_constraints_package(
         build_constraints_with_annotation(function, False),
@@ -182,7 +184,7 @@ def function_constraints(*args, **options):
 def _method_constraints_pass_by_positional_args(type_args, options):
 
     def decorator(function):
-        raise_on_non_function(function)
+        raise_on_non_callable(function)
 
         input_type_args = [function, True, type_args]
         if 'return_type' in options:
@@ -223,7 +225,7 @@ def _method_constraints_pass_by_compound_args(constraints, options):
     constraints_package = build_constraints_package(constraints)
 
     def decorator(function):
-        raise_on_non_function(function)
+        raise_on_non_callable(function)
 
         def wrapper(self_or_cls, *args, **kwargs):
 
@@ -248,7 +250,7 @@ def _method_constraints_pass_by_compound_args(constraints, options):
 # def method(self_or_cls, foo: int, bar: float) -> float:
 #     return foo + bar
 def _method_constraints_by_inspection(function):
-    raise_on_non_function(function)
+    raise_on_non_callable(function)
 
     constraints_package = build_constraints_package(
         build_constraints_with_annotation(function, True),

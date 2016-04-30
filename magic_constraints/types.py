@@ -11,10 +11,6 @@ from abc import ABCMeta
 import collections as abc
 
 from magic_constraints.exception import MagicTypeError
-from magic_constraints.utils import (
-    type_object, nontype_object,
-    repr_return, conditional_repr,
-)
 
 
 def unbound_getattr(target, name):
@@ -90,9 +86,13 @@ def CreateMetaMagicType(generator_cls):
     return MetaMagicType
 
 
+class BasicMagicType(object):
+    pass
+
+
 def CreateMagicType(generator_cls, MetaMagicType, ABC):
 
-    class MagicType(with_metaclass(MetaMagicType, object)):
+    class MagicType(with_metaclass(MetaMagicType, BasicMagicType)):
 
         main_cls = ABC
         partial_cls = None
@@ -427,4 +427,10 @@ Optional = OptionalGenerator(Any)
 NoneType = type(None)
 
 
-from magic_constraints.decorator import function_constraints  # noqa
+from magic_constraints.decorator import (
+    function_constraints,
+)  # noqa
+from magic_constraints.utils import (
+    type_object, nontype_object,
+    repr_return, conditional_repr,
+)  # noqa
