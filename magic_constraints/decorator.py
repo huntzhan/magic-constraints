@@ -4,7 +4,9 @@ from __future__ import (
 )
 from builtins import *                  # noqa
 from future.builtins.disabled import *  # noqa
+
 import collections as abc
+from functools import wraps
 
 from magic_constraints.exception import (
     MagicSyntaxError,
@@ -89,6 +91,7 @@ def _function_constraints_pass_by_positional_args(type_args, options):
             build_constraints_with_given_type_args(*input_type_args),
         )
 
+        @wraps(function)
         def wrapper(*args, **kwargs):
 
             slots = transform_to_slots(constraints_package, *args, **kwargs)
@@ -122,6 +125,7 @@ def _function_constraints_pass_by_compound_args(constraints, options):
     def decorator(function):
         raise_on_non_callable(function)
 
+        @wraps(function)
         def wrapper(*args, **kwargs):
 
             slots = transform_to_slots(constraints_package, *args, **kwargs)
@@ -151,6 +155,7 @@ def _function_constraints_by_inspection(function):
         build_constraints_with_annotation(function, False),
     )
 
+    @wraps(function)
     def wrapper(*args, **kwargs):
         slots = transform_to_slots(constraints_package, *args, **kwargs)
         check_and_bind_arguments(
@@ -194,6 +199,7 @@ def _method_constraints_pass_by_positional_args(type_args, options):
             build_constraints_with_given_type_args(*input_type_args),
         )
 
+        @wraps(function)
         def wrapper(self_or_cls, *args, **kwargs):
 
             slots = transform_to_slots(constraints_package, *args, **kwargs)
@@ -227,6 +233,7 @@ def _method_constraints_pass_by_compound_args(constraints, options):
     def decorator(function):
         raise_on_non_callable(function)
 
+        @wraps(function)
         def wrapper(self_or_cls, *args, **kwargs):
 
             slots = transform_to_slots(constraints_package, *args, **kwargs)
@@ -256,6 +263,7 @@ def _method_constraints_by_inspection(function):
         build_constraints_with_annotation(function, True),
     )
 
+    @wraps(function)
     def wrapper(self_or_cls, *args, **kwargs):
         slots = transform_to_slots(constraints_package, *args, **kwargs)
         check_and_bind_arguments(
