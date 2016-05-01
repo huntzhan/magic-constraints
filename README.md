@@ -3,6 +3,8 @@
 [![PyPI](https://img.shields.io/pypi/pyversions/magic_constraints.svg)](https://pypi.python.org/pypi/magic_constraints) [![Build
   Status](https://travis-ci.org/huntzhan/magic-constraints.svg?branch=master)](https://travis-ci.org/huntzhan/magic-constraints)
 [![Coverage Status](https://coveralls.io/repos/github/huntzhan/magic-constraints/badge.svg?branch=master)](https://coveralls.io/github/huntzhan/magic-constraints?branch=master) 
+[![Documentation
+Status](https://readthedocs.org/projects/magic-constraints/badge/?version=latest)](http://magic-constraints.readthedocs.io/en/latest/?badge=latest)
 
 # Introduction
 

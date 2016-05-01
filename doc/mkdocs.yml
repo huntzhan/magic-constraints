@@ -1,1 +1,6 @@
-site_name: My Docs
+site_name: magic-constraints
+
+pages:
+- Home: index.md
+
+theme: readthedocs
