@@ -1,6 +1,9 @@
 include README.md
 include requirements.txt
+
 recursive-include tests *
 recursive-include scripts *
+recursive-include doc *
+
 global-exclude __pycache__
 global-exclude *.py[co]
