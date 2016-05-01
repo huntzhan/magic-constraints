@@ -11,10 +11,17 @@ import collections as abc
 from funcsigs import signature
 from funcsigs import Parameter as SigParameter
 
+
+from magic_constraints.types import (
+    Any,
+    BasicMagicType,
+)
+
 from magic_constraints.exception import (
     MagicSyntaxError,
     MagicTypeError,
 )
+
 from magic_constraints.utils import (
     type_object,
     nontype_object,
@@ -327,9 +334,3 @@ def build_constraints_with_given_type_args(
     )
 
     return constraints
-
-
-from magic_constraints.types import (
-    Any,
-    BasicMagicType,
-)  # noqa

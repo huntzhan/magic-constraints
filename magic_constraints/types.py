@@ -10,6 +10,15 @@ from abc import ABCMeta
 # collections.abc dosn't esist in Python 2.x.
 import collections as abc
 
+from magic_constraints.utils import (
+    type_object, nontype_object,
+    conditional_to_bytes, conditional_repr,
+)
+
+from magic_constraints.exception import (
+    MagicTypeError, MagicIndexError
+)
+
 
 def meta_create_class(prefix, classname, baseclass, generator_cls):
 
@@ -465,18 +474,6 @@ class Any(with_metaclass(AnyMeta, object)):
     pass
 
 
-from magic_constraints.decorator import (
-    function_constraints,
-)  # noqa
-from magic_constraints.utils import (
-    type_object, nontype_object,
-    conditional_to_bytes, conditional_repr,
-)  # noqa
-from magic_constraints.exception import (
-    MagicTypeError, MagicIndexError
-)  # noqa
-
-
 ABCImmutableSequence = generate_immutable_abc(
     abc.Sequence, abc.MutableSequence,
 )
@@ -507,3 +504,8 @@ Callable = CallableGenerator(abc.Callable)
 Union = UnionGenerator(dummy_class('Union'))
 Optional = OptionalGenerator(dummy_class('Optional'))
 NoneType = type(None)
+
+
+from magic_constraints.decorator import (
+    function_constraints,
+)  # noqa
