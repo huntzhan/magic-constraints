@@ -231,6 +231,13 @@ def test_callable():
         c1_wrapper(42, 42.0)
 
 
+def test_repr():
+
+    assert conditional_to_bytes('Any') == repr(Any)
+    assert conditional_to_bytes('Union') == repr(Union)
+    assert conditional_to_bytes('Optional') == repr(Optional)
+
+
 @pytest.mark.xfail(
     sys.version_info.major > 2,
     reason="future problem.",
@@ -241,9 +248,8 @@ def test_repr_python2():
     assert conditional_to_bytes('Sequence[newint, float]') ==\
         repr(Sequence[int, float])
 
-    assert conditional_to_bytes('Any') == repr(Any)
-    assert conditional_to_bytes('Union') == repr(Union)
-    assert conditional_to_bytes('Optional') == repr(Optional)
+    assert conditional_to_bytes('Callable[[newint, float], float]') ==\
+        repr(Callable[[int, float], float])
 
 
 @pytest.mark.xfail(
@@ -256,9 +262,8 @@ def test_repr_python3():
     assert conditional_to_bytes('Sequence[int, float]') ==\
         repr(Sequence[int, float])
 
-    assert conditional_to_bytes('Any') == repr(Any)
-    assert conditional_to_bytes('Union') == repr(Union)
-    assert conditional_to_bytes('Optional') == repr(Optional)
+    assert conditional_to_bytes('Callable[[int, float], float]') ==\
+        repr(Callable[[int, float], float])
 
 
 def test_corner_cases():

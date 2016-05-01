@@ -58,6 +58,12 @@ def conditional_repr(obj):
             return repr(obj)
         else:
             return obj.__name__
+
+    elif isinstance(obj, (list, tuple)):
+        return '[{}]'.format(
+            ', '.join(map(conditional_repr, obj)),
+        )
+
     else:
         return repr(obj)
 

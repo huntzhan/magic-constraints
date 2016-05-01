@@ -113,7 +113,6 @@ class BasicMetaMagicType(ABCMeta):
                     else [cls.partial_cls],
                 ),
             )
-
             name = '{0}[{1}]'.format(
                 name, partial,
             )
@@ -387,7 +386,7 @@ class CallableGenerator(MagicTypeGenerator):
             # is callable and not Callable[T, ...].
             return True
 
-    def _class___init__(self, instance):
+    def _class___new__(self, instance):
         # 1. not Callable.
         if not isinstance(instance, self.main_cls):
             raise MagicTypeError(
@@ -401,14 +400,12 @@ class CallableGenerator(MagicTypeGenerator):
             )
 
         parameters_types, return_type = self.partial_cls
-        self._wrapper = function_constraints(
+
+        return function_constraints(
             *parameters_types,
             # tailing coma is invalid for version < 3.5.
             return_type=return_type
         )(instance)
-
-    def _class___call__(self, *args, **kwargs):
-        return self._wrapper(*args, **kwargs)
 
 
 class UnionGenerator(MagicTypeGenerator):
