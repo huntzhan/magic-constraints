@@ -241,6 +241,10 @@ def test_repr_python2():
     assert conditional_to_bytes('Sequence[newint, float]') ==\
         repr(Sequence[int, float])
 
+    assert conditional_to_bytes('Any') == repr(Any)
+    assert conditional_to_bytes('Union') == repr(Union)
+    assert conditional_to_bytes('Optional') == repr(Optional)
+
 
 @pytest.mark.xfail(
     sys.version_info.major < 3,
@@ -251,6 +255,10 @@ def test_repr_python3():
     assert conditional_to_bytes('Sequence[int]') == repr(Sequence[int])
     assert conditional_to_bytes('Sequence[int, float]') ==\
         repr(Sequence[int, float])
+
+    assert conditional_to_bytes('Any') == repr(Any)
+    assert conditional_to_bytes('Union') == repr(Union)
+    assert conditional_to_bytes('Optional') == repr(Optional)
 
 
 def test_corner_cases():

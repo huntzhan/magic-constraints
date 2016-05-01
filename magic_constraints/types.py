@@ -445,6 +445,10 @@ class OptionalGenerator(MagicTypeGenerator):
             return isinstance(instance, cls.partial_cls)
 
 
+def dummy_class(name):
+    return type(conditional_to_bytes(name), (object,), {})
+
+
 class AnyMeta(ABCMeta):
 
     def __instancecheck__(cls, instance):
@@ -452,6 +456,9 @@ class AnyMeta(ABCMeta):
 
     def __subclasscheck__(cls, subclass):
         return type_object(subclass)
+
+    def __repr__(self):
+        return conditional_to_bytes('Any')
 
 
 class Any(with_metaclass(AnyMeta, object)):
@@ -497,6 +504,6 @@ Iterable = IterableGenerator(abc.Iterable)
 
 Callable = CallableGenerator(abc.Callable)
 
-Union = UnionGenerator(Any)
-Optional = OptionalGenerator(Any)
+Union = UnionGenerator(dummy_class('Union'))
+Optional = OptionalGenerator(dummy_class('Optional'))
 NoneType = type(None)
