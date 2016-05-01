@@ -386,20 +386,20 @@ class CallableGenerator(MagicTypeGenerator):
             # is callable and not Callable[T, ...].
             return True
 
-    def _class___new__(self, instance):
+    def _class___new__(cls, instance):
         # 1. not Callable.
-        if not isinstance(instance, self.main_cls):
+        if not isinstance(instance, cls.main_cls):
             raise MagicTypeError(
                 'instance should be a Callable.',
                 instance=instance,
             )
         # 2. with no specification.
-        if not self.partial_cls:
+        if not cls.partial_cls:
             raise MagicSyntaxError(
                 'Callable should be specified to wrap the callable.',
             )
 
-        parameters_types, return_type = self.partial_cls
+        parameters_types, return_type = cls.partial_cls
 
         return function_constraints(
             *parameters_types,
