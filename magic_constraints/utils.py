@@ -46,7 +46,7 @@ def raise_on_nontype_object(obj):
         )
 
 
-def repr_return(text):
+def conditional_to_bytes(text):
     if sys.version_info.major == 2:  # pragma: no cover
         text = text.encode('utf-8')
     return text

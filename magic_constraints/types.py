@@ -10,8 +10,6 @@ from abc import ABCMeta
 # collections.abc dosn't esist in Python 2.x.
 import collections as abc
 
-from magic_constraints.exception import MagicTypeError, MagicIndexError
-
 
 def meta_create_class(prefix, classname, baseclass, generator_cls):
 
@@ -27,7 +25,9 @@ def meta_create_class(prefix, classname, baseclass, generator_cls):
         # remove prefix.
         injected_functions[name[len(prefix):]] = function
 
-    return type(classname, (baseclass,), injected_functions)
+    return type(
+        conditional_to_bytes(classname), (baseclass,), injected_functions,
+    )
 
 
 def create_metaclass(baseclass, generator_cls):
@@ -109,7 +109,7 @@ class BasicMetaMagicType(ABCMeta):
                 name, partial,
             )
 
-        return repr_return(name)
+        return conditional_to_bytes(name)
 
 
 # 1. _metaclass_{name} -> {name} in metaclass.
@@ -458,6 +458,18 @@ class Any(with_metaclass(AnyMeta, object)):
     pass
 
 
+from magic_constraints.decorator import (
+    function_constraints,
+)  # noqa
+from magic_constraints.utils import (
+    type_object, nontype_object,
+    conditional_to_bytes, conditional_repr,
+)  # noqa
+from magic_constraints.exception import (
+    MagicTypeError, MagicIndexError
+)  # noqa
+
+
 ABCImmutableSequence = generate_immutable_abc(
     abc.Sequence, abc.MutableSequence,
 )
@@ -488,12 +500,3 @@ Callable = CallableGenerator(abc.Callable)
 Union = UnionGenerator(Any)
 Optional = OptionalGenerator(Any)
 NoneType = type(None)
-
-
-from magic_constraints.decorator import (
-    function_constraints,
-)  # noqa
-from magic_constraints.utils import (
-    type_object, nontype_object,
-    repr_return, conditional_repr,
-)  # noqa

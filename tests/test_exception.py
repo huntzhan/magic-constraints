@@ -7,7 +7,7 @@ from future.builtins.disabled import *  # noqa
 
 from magic_constraints import *  # noqa
 from magic_constraints.utils import (
-    repr_return,
+    conditional_to_bytes,
 )
 
 
@@ -19,28 +19,28 @@ def test_exception():
 def test_repr_and_str():
 
     assert (
-        repr_return(
+        conditional_to_bytes(
             "MagicSyntaxError('[Empty Message]',)"
         ) ==
         repr(MagicSyntaxError())
     )
 
     assert (
-        repr_return(
+        conditional_to_bytes(
             "MagicSyntaxError('msg',)"
         ) ==
         repr(MagicSyntaxError('msg'))
     )
 
     assert (
-        repr_return(
+        conditional_to_bytes(
             "MagicSyntaxError('msg',)"
         ) ==
         repr(MagicSyntaxError('msg', b=1, a=2))
     )
 
     assert (
-        repr_return(
+        conditional_to_bytes(
             "\n"
             "MagicSyntaxError: [Empty Message]\n"
             "---------------------------------\n"
@@ -51,7 +51,7 @@ def test_repr_and_str():
     )
 
     assert (
-        repr_return(
+        conditional_to_bytes(
             "\n"
             "MagicSyntaxError: msg\n"
             "---------------------\n"
@@ -62,7 +62,7 @@ def test_repr_and_str():
     )
 
     assert (
-        repr_return(
+        conditional_to_bytes(
             "\n"
             "MagicSyntaxError: msg\n"
             "---------------------\n"

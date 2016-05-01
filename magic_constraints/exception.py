@@ -9,7 +9,7 @@ from future.builtins.disabled import *  # noqa
 class MagicError(Exception):
 
     def __init__(self, message='[Empty Message]', **kwargs):
-        super().__init__(repr_return(message))
+        super().__init__(conditional_to_bytes(message))
 
         self._message = message
         self._kwargs = kwargs
@@ -27,7 +27,7 @@ class MagicError(Exception):
             sorted(self._kwargs.items(), key=lambda p: p[0]),
         ))
 
-        return repr_return(
+        return conditional_to_bytes(
             # prefix \n for traceback display.
             '\n{title}\n{sep_line}\n{kv_lines}\n{sep_line}'.format(
                 title=title,
@@ -54,4 +54,4 @@ class MagicIndexError(MagicError, IndexError):
     pass
 
 
-from magic_constraints.utils import repr_return  # noqa
+from magic_constraints.utils import conditional_to_bytes  # noqa

@@ -9,7 +9,7 @@ import sys
 import pytest
 from magic_constraints import *  # noqa
 from magic_constraints.utils import (
-    repr_return,
+    conditional_to_bytes,
 )
 
 
@@ -236,9 +236,10 @@ def test_callable():
     reason="future problem.",
 )
 def test_repr_python2():
-    assert repr_return('Sequence') == repr(Sequence)
-    assert repr_return('Sequence[newint]') == repr(Sequence[int])
-    assert repr_return('Sequence[newint, float]') == repr(Sequence[int, float])
+    assert conditional_to_bytes('Sequence') == repr(Sequence)
+    assert conditional_to_bytes('Sequence[newint]') == repr(Sequence[int])
+    assert conditional_to_bytes('Sequence[newint, float]') ==\
+        repr(Sequence[int, float])
 
 
 @pytest.mark.xfail(
@@ -246,9 +247,10 @@ def test_repr_python2():
     reason="future problem.",
 )
 def test_repr_python3():
-    assert repr_return('Sequence') == repr(Sequence)
-    assert repr_return('Sequence[int]') == repr(Sequence[int])
-    assert repr_return('Sequence[int, float]') == repr(Sequence[int, float])
+    assert conditional_to_bytes('Sequence') == repr(Sequence)
+    assert conditional_to_bytes('Sequence[int]') == repr(Sequence[int])
+    assert conditional_to_bytes('Sequence[int, float]') ==\
+        repr(Sequence[int, float])
 
 
 def test_corner_cases():

@@ -8,7 +8,7 @@ from future.builtins.disabled import *  # noqa
 import pytest
 from magic_constraints import *  # noqa
 from magic_constraints.utils import (
-    repr_return,
+    conditional_to_bytes,
 )
 
 
@@ -21,11 +21,11 @@ def test_validator():
 
 def test_repr():
     assert (
-        repr_return("Parameter(name='a', type_=Sequence[int])") ==
+        conditional_to_bytes("Parameter(name='a', type_=Sequence[int])") ==
         repr(Parameter(name='a', type_=Sequence[int]))
     )
     assert (
-        repr_return(
+        conditional_to_bytes(
             "Parameter("
             "name='a', "
             "type_=Sequence[int]"
@@ -35,7 +35,7 @@ def test_repr():
     )
     # test keyword sorting.
     assert (
-        repr_return(
+        conditional_to_bytes(
             "Parameter("
             "name='a', "
             "type_=Sequence[int], "

@@ -19,7 +19,7 @@ from magic_constraints.utils import (
     type_object,
     nontype_object,
     raise_on_nontype_object,
-    repr_return,
+    conditional_to_bytes,
     conditional_repr,
     return_true,
 )
@@ -103,7 +103,7 @@ class Constraint(object):
         return arguemnt_repr
 
     def __repr__(self):
-        return repr_return(
+        return conditional_to_bytes(
             '{cls_name}({arguemnt_repr})'.format(
                 cls_name=type(self).__name__,
                 arguemnt_repr=self._arguments_repr,
