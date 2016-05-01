@@ -13,110 +13,124 @@ import collections as abc
 from magic_constraints.exception import MagicTypeError, MagicIndexError
 
 
-def unbound_getattr(target, name):
-    return target.__dict__.get(name, None)
+def meta_create_class(prefix, classname, baseclass, generator_cls):
+
+    injected_functions = {}
+    for name in dir(generator_cls):
+        if not name.startswith(prefix):
+            continue
+        # get unbound function.
+        function = getattr(generator_cls, name)
+        if hasattr(function, '__func__'):
+            function = function.__func__
+
+        # remove prefix.
+        injected_functions[name[len(prefix):]] = function
+
+    return type(classname, (baseclass,), injected_functions)
 
 
-def CreateMetaMagicType(generator_cls):
+def create_metaclass(baseclass, generator_cls):
+    return meta_create_class(
+        '_metaclass_', 'MetaMagicClass', baseclass, generator_cls,
+    )
 
-    class MetaMagicType(ABCMeta):
 
-        def __getitem__(cls, type_decl):
+def create_class(baseclass, generator_cls):
+    return meta_create_class(
+        '_class_', 'MagicClass', baseclass, generator_cls,
+    )
 
-            type_decl_checker = unbound_getattr(
-                generator_cls,
-                'check_getitem_type_decl',
-            )
-            if type_decl_checker and not type_decl_checker(type_decl):
-                raise MagicTypeError(
-                    'invalid type.',
-                    type_decl=type_decl,
-                )
 
-            ret_cls = generator_cls(cls.main_cls)
-            ret_cls.partial_cls = type_decl
-            return ret_cls
+def safe_getmethod(cls, name):
 
-        # fix unbound error of Python 2.x.
-        __instancecheck__ = unbound_getattr(generator_cls, '__instancecheck__')
+    def do_nothing(*args, **kwargs):
+        return True
 
-        def __subclasscheck__(cls, subclass):
-            if nontype_object(subclass):
-                return False
-
-            if unbound_getattr(generator_cls, '__subclasshook__'):
-                subclasshook = unbound_getattr(
-                    generator_cls, '__subclasshook__',
-                )
-                if not subclasshook(cls, subclass):
-                    return False
-
-            # corner case, subclass isn't MagicType.
-            if not hasattr(subclass, 'partial_cls'):
-                return issubclass(subclass, cls.main_cls)
-
-            # subclass is MagicType.
-            if cls.partial_cls or subclass.partial_cls:
-                # if subclass has partial_cls, return False.
-                return False
-            else:
-                # 1. subclass is normal type object.
-                # 2. subclass is a MagicType.
-                return issubclass(subclass.main_cls, cls.main_cls)
-
-        def __repr__(cls):
-
-            name = conditional_repr(cls.main_cls)
-            if cls.partial_cls:
-                partial = ', '.join(
-                    map(
-                        conditional_repr,
-                        cls.partial_cls
-                        if isinstance(cls.partial_cls, tuple)
-                        else [cls.partial_cls],
-                    ),
-                )
-
-                name = '{0}[{1}]'.format(
-                    name, partial,
-                )
-
-            return repr_return(name)
-
-    return MetaMagicType
+    method = getattr(cls, name, None)
+    return method if method else do_nothing
 
 
 class BasicMagicType(object):
     pass
 
 
-def CreateMagicType(generator_cls, MetaMagicType, ABC):
+class BasicMetaMagicType(ABCMeta):
 
-    class MagicType(with_metaclass(MetaMagicType, BasicMagicType)):
+    def __getitem__(cls, type_decl):
 
-        main_cls = ABC
-        partial_cls = None
+        if not safe_getmethod(cls, 'check_getitem_type_decl')(type_decl):
+            raise MagicTypeError(
+                'invalid type.',
+                type_decl=type_decl,
+            )
 
-        for attr in [
-            '__new__',
-            '__init__',
-            # iterator.
-            '__iter__',
-            '__next__',
-            # callable.
-            '__call__',
-        ]:
-            if unbound_getattr(generator_cls, attr):
-                locals()[attr] = unbound_getattr(generator_cls, attr)
+        ret_cls = cls.generator_cls(cls.main_cls)
+        ret_cls.partial_cls = type_decl
+        return ret_cls
 
-    return MagicType
+    def __subclasscheck__(cls, subclass):
+        if nontype_object(subclass):
+            return False
+
+        if not safe_getmethod(cls, 'check_subclass')(subclass):
+            return False
+
+        # corner case, subclass isn't MagicType.
+        if not issubclass(subclass, BasicMagicType):
+            return issubclass(subclass, cls.main_cls)
+
+        # subclass is MagicType.
+        if cls.partial_cls or subclass.partial_cls:
+            # if subclass has partial_cls, return False.
+            return False
+        else:
+            # 1. subclass is normal type object.
+            # 2. subclass is a MagicType.
+            return issubclass(subclass.main_cls, cls.main_cls)
+
+    def __instancecheck__(cls, instance):
+        return safe_getmethod(cls, 'check_instance')(instance)
+
+    def __repr__(cls):
+
+        name = conditional_repr(cls.main_cls)
+        if cls.partial_cls:
+            partial = ', '.join(
+                map(
+                    conditional_repr,
+                    cls.partial_cls
+                    if isinstance(cls.partial_cls, tuple)
+                    else [cls.partial_cls],
+                ),
+            )
+
+            name = '{0}[{1}]'.format(
+                name, partial,
+            )
+
+        return repr_return(name)
 
 
+# 1. _metaclass_{name} -> {name} in metaclass.
+# 2. _class_{name}     -> {name} in class.
 class MagicTypeGenerator(type):
 
-    def __new__(cls, ABC):
-        MetaMagicType = CreateMetaMagicType(cls)
-        return CreateMagicType(cls, MetaMagicType, ABC)
+    def __new__(generator_cls, ABC):
+        MetaMagicType = create_metaclass(
+            BasicMetaMagicType,
+            generator_cls,
+        )
+        MagicType = create_class(
+            with_metaclass(MetaMagicType, BasicMagicType),
+            generator_cls,
+        )
+
+        MagicType.generator_cls = generator_cls
+        MagicType.main_cls = ABC
+        MagicType.partial_cls = None
+
+        return MagicType
 
 
 def check_type_of_instance(cls, instance):
@@ -154,7 +168,7 @@ def generate_immutable_abc(supercls, mutable_subclass):
 
 class SequenceGenerator(MagicTypeGenerator):
 
-    def check_getitem_type_decl(type_decl):
+    def _metaclass_check_getitem_type_decl(cls, type_decl):
         if type_object(type_decl):
             return True
 
@@ -166,7 +180,7 @@ class SequenceGenerator(MagicTypeGenerator):
         else:
             return False
 
-    def __instancecheck__(cls, instance):
+    def _metaclass_check_instance(cls, instance):
         if not check_type_of_instance(cls, instance):
             return False
 
@@ -189,10 +203,10 @@ class SequenceGenerator(MagicTypeGenerator):
 
 class SetGenerator(MagicTypeGenerator):
 
-    def check_getitem_type_decl(type_decl):
+    def _metaclass_check_getitem_type_decl(cls, type_decl):
         return type_object(type_decl)
 
-    def __instancecheck__(cls, instance):
+    def _metaclass_check_instance(cls, instance):
         if not check_type_of_instance(cls, instance):
             return False
 
@@ -209,13 +223,13 @@ class SetGenerator(MagicTypeGenerator):
 
 class MappingGenerator(MagicTypeGenerator):
 
-    def check_getitem_type_decl(type_decl):
+    def _metaclass_check_getitem_type_decl(cls, type_decl):
         if not check_getitem_tuple(type_decl, 2):
             return False
 
         return type_object(type_decl[0]) and type_object(type_decl[1])
 
-    def __instancecheck__(cls, instance):
+    def _metaclass_check_instance(cls, instance):
         if not check_type_of_instance(cls, instance):
             return False
 
@@ -227,13 +241,12 @@ class MappingGenerator(MagicTypeGenerator):
         return True
 
 
-ITERATOR_CASE_LENGTH = 1
-ITERATOR_CASE_NO_LENGTH = 2
-
-
 class IteratorGenerator(MagicTypeGenerator):
 
-    def check_getitem_type_decl(type_decl):
+    _class_ITERATOR_CASE_LENGTH = 1
+    _class_ITERATOR_CASE_NO_LENGTH = 2
+
+    def _metaclass_check_getitem_type_decl(cls, type_decl):
         # 1. Iterator[T, ...]
         if isinstance(type_decl, tuple):
             for T in type_decl:
@@ -248,7 +261,14 @@ class IteratorGenerator(MagicTypeGenerator):
         else:
             return False
 
-    def __init__(self, iterator):
+    def _metaclass_check_instance(cls, instance):
+        if cls.partial_cls or not check_type_of_instance(cls, instance):
+            return False
+        else:
+            # is Iterator and not Iterator[T, ...].
+            return True
+
+    def _class___init__(self, iterator):
         if self.partial_cls is None:
             raise MagicTypeError(
                 'Iterator should be specified.'
@@ -264,22 +284,22 @@ class IteratorGenerator(MagicTypeGenerator):
             # Iterator[T, ...]. Checking on:
             # 1. the number of elements in the iterator.
             # 2. the type of each element.
-            self.case = ITERATOR_CASE_LENGTH
+            self.case = self.ITERATOR_CASE_LENGTH
             self._type_idx = 0
         else:
             # Iterator[T]. Check only the type of element. There's no
             # limitation on the length of iterator.
-            self.case = ITERATOR_CASE_NO_LENGTH
+            self.case = self.ITERATOR_CASE_NO_LENGTH
 
         self.iterator = iterator
 
-    def __iter__(self):
+    def _class___iter__(self):
         return self
 
-    def __next__(self):
+    def _class___next__(self):
         element = next(self.iterator)
 
-        if self.case == ITERATOR_CASE_LENGTH:
+        if self.case == self.ITERATOR_CASE_LENGTH:
             # error 1.
             if self._type_idx >= len(self.partial_cls):
                 raise MagicIndexError(
@@ -300,7 +320,7 @@ class IteratorGenerator(MagicTypeGenerator):
             self._type_idx += 1
             return element
 
-        elif self.case == ITERATOR_CASE_NO_LENGTH:
+        elif self.case == self.ITERATOR_CASE_NO_LENGTH:
             if not isinstance(element, self.partial_cls):
                 raise MagicTypeError(
                     'type unmatched.',
@@ -308,20 +328,16 @@ class IteratorGenerator(MagicTypeGenerator):
                     type_=self.partial_cls,
                 )
 
-    def __instancecheck__(cls, instance):
-        if cls.partial_cls or not check_type_of_instance(cls, instance):
-            return False
-        else:
-            # is Iterator and not Iterator[T, ...].
-            return True
-
 
 class IterableGenerator(MagicTypeGenerator):
 
-    def check_getitem_type_decl(type_decl):
+    def _metaclass_check_getitem_type_decl(cls, type_decl):
         return type_object(type_decl)
 
-    def __init__(self, iterable):
+    def _metaclass_check_instance(cls, instance):
+        return check_type_of_instance(cls, instance)
+
+    def _class___init__(self, iterable):
         if self.partial_cls is None:
             raise MagicTypeError(
                 'require T on Iterable[T].'
@@ -333,18 +349,15 @@ class IterableGenerator(MagicTypeGenerator):
             )
         self.iterable = iterable
 
-    def __iter__(self):
+    def _class___iter__(self):
         return Iterator[self.partial_cls](
             iter(self.iterable),
         )
 
-    def __instancecheck__(cls, instance):
-        return check_type_of_instance(cls, instance)
-
 
 class CallableGenerator(MagicTypeGenerator):
 
-    def check_getitem_type_decl(type_decl):
+    def _metaclass_check_getitem_type_decl(cls, type_decl):
         # Callable[[T, ...], T]
         if not check_getitem_tuple(type_decl, 2):
             return False
@@ -358,7 +371,14 @@ class CallableGenerator(MagicTypeGenerator):
 
         return True
 
-    def __init__(self, instance):
+    def _metaclass_check_instance(cls, instance):
+        if cls.partial_cls or not check_type_of_instance(cls, instance):
+            return False
+        else:
+            # is callable and not Callable[T, ...].
+            return True
+
+    def _class___init__(self, instance):
         # 1. not Callable.
         if not isinstance(instance, self.main_cls):
             raise MagicTypeError(
@@ -378,15 +398,51 @@ class CallableGenerator(MagicTypeGenerator):
             return_type=return_type
         )(instance)
 
-    def __call__(self, *args, **kwargs):
+    def _class___call__(self, *args, **kwargs):
         return self._wrapper(*args, **kwargs)
 
-    def __instancecheck__(cls, instance):
-        if cls.partial_cls or not check_type_of_instance(cls, instance):
+
+class UnionGenerator(MagicTypeGenerator):
+
+    def _metaclass_check_getitem_type_decl(cls, type_decl):
+        if type_object(type_decl) or not isinstance(type_decl, tuple):
             return False
+
+        for T in type_decl:
+            if nontype_object(T):
+                return False
         else:
-            # is callable and not Callable[T, ...].
             return True
+
+    def _metaclass_check_subclass(cls, subclass):
+        return False
+
+    def _metaclass_check_instance(cls, instance):
+        if cls.partial_cls is None:
+            return False
+
+        for candidate_cls in cls.partial_cls:
+            if isinstance(instance, candidate_cls):
+                return True
+        return False
+
+
+class OptionalGenerator(MagicTypeGenerator):
+
+    def _metaclass_check_getitem_type_decl(cls, type_decl):
+        return type_object(type_decl)
+
+    def _metaclass_check_subclass(cls, subclass):
+        return False
+
+    def _metaclass_check_instance(cls, instance):
+        if cls.partial_cls is None:
+            return False
+
+        if instance is None:
+            return True
+        else:
+            return isinstance(instance, cls.partial_cls)
 
 
 class AnyMeta(ABCMeta):
@@ -400,49 +456,6 @@ class AnyMeta(ABCMeta):
 
 class Any(with_metaclass(AnyMeta, object)):
     pass
-
-
-class UnionGenerator(MagicTypeGenerator):
-
-    def check_getitem_type_decl(type_decl):
-        if type_object(type_decl) or not isinstance(type_decl, tuple):
-            return False
-
-        for T in type_decl:
-            if nontype_object(T):
-                return False
-        else:
-            return True
-
-    def __subclasshook__(cls, subclass):
-        return False
-
-    def __instancecheck__(cls, instance):
-        if cls.partial_cls is None:
-            return False
-
-        for candidate_cls in cls.partial_cls:
-            if isinstance(instance, candidate_cls):
-                return True
-        return False
-
-
-class OptionalGenerator(MagicTypeGenerator):
-
-    def check_getitem_type_decl(type_decl):
-        return type_object(type_decl)
-
-    def __subclasshook__(cls, subclass):
-        return False
-
-    def __instancecheck__(cls, instance):
-        if cls.partial_cls is None:
-            return False
-
-        if instance is None:
-            return True
-        else:
-            return isinstance(instance, cls.partial_cls)
 
 
 ABCImmutableSequence = generate_immutable_abc(
