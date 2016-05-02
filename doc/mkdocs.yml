@@ -1,6 +1,0 @@
-site_name: magic-constraints
-
-pages:
-- Home: index.md
-
-theme: readthedocs

@@ -1,0 +1,6 @@
+site_name: magic-constraints
+
+pages:
+    - Home: index.md
+    - magic_constrains.types: types.md
+    - magic_constrains.decorator: decorator.md
