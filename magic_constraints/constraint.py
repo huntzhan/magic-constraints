@@ -262,7 +262,7 @@ def build_parameter_in_inspection(name, type_, sig_parameter):
         return Parameter(name, annotation, default=default)
 
 
-def build_return_type_in_inspection(return_type):
+def build_return_type(return_type):
     if return_type is SigParameter.empty:
         return ReturnType(Any)
 
@@ -292,7 +292,7 @@ def build_constraints_with_annotation(function, skip_first_argument):
 
     # 2. return type.
     constraints.append(
-        build_return_type_in_inspection(function_sig.return_annotation),
+        build_return_type(function_sig.return_annotation),
     )
 
     return constraints
@@ -330,7 +330,7 @@ def build_constraints_with_given_type_args(
 
     # 2. return type.
     constraints.append(
-        build_return_type_in_inspection(return_type),
+        build_return_type(return_type),
     )
 
     return constraints

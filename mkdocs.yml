@@ -4,3 +4,5 @@ pages:
     - Home: index.md
     - magic_constrains.types: types.md
     - magic_constrains.decorator: decorator.md
+
+theme: cerulean

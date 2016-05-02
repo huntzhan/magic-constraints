@@ -369,15 +369,22 @@ class CallableGenerator(MagicTypeGenerator):
         # Callable[[T, ...], T]
         if not check_getitem_tuple(type_decl, 2):
             return False
-        if not isinstance(type_decl[0], abc.Iterable) or\
-                nontype_object(type_decl[1]):
-            return False
-        # [T, ...]
-        for T in type_decl[0]:
-            if nontype_object(T):
-                return False
 
-        return True
+        # return type.
+        if nontype_object(type_decl[1]):
+            return False
+
+        # types of parameters.
+        if isinstance(type_decl[0], abc.Iterable):
+            # [T, ...]
+            for T in type_decl[0]:
+                if nontype_object(T):
+                    return False
+            else:
+                return True
+        else:
+            # special case, Ellipsis.
+            return type_decl[0] is Ellipsis
 
     def _metaclass_check_instance(cls, instance):
         if cls.partial_cls or not check_type_of_instance(cls, instance):
@@ -400,6 +407,9 @@ class CallableGenerator(MagicTypeGenerator):
             )
 
         parameters_types, return_type = cls.partial_cls
+
+        if parameters_types is Ellipsis:
+            parameters_types = [parameters_types]
 
         return function_constraints(
             *parameters_types,

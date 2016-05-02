@@ -224,11 +224,15 @@ def test_callable():
 
     Callable[[int, int], Any]
 
-    c1_wrapper = Callable[[int, int], Any](c1)
+    c1_wrapper1 = Callable[[int, int], Any](c1)
 
-    c1_wrapper(42, 42)
+    c1_wrapper1(42, 42)
     with pytest.raises(TypeError):
-        c1_wrapper(42, 42.0)
+        c1_wrapper1(42, 42.0)
+
+    c1_wrapper2 = Callable[..., Any](c1)
+    c1_wrapper2(42, 42)
+    c1_wrapper2(42, 42.0)
 
 
 def test_repr():

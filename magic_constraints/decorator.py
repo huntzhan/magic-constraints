@@ -8,6 +8,9 @@ from future.builtins.disabled import *  # noqa
 import collections as abc
 from functools import wraps
 
+# TODO: fix that later.
+from funcsigs import Parameter as SigParameter
+
 from magic_constraints.exception import (
     MagicSyntaxError,
     MagicTypeError,
@@ -19,6 +22,7 @@ from magic_constraints.constraint import (
     build_constraints_package,
     build_constraints_with_given_type_args,
     build_constraints_with_annotation,
+    build_return_type,
 
     raise_on_non_constraints,
     raise_on_non_parameters,
@@ -39,14 +43,22 @@ from magic_constraints.utils import (
 )
 
 
-def decorator_dispather(args, options,
-                        by_positional, by_compound, by_inspection):
+def decorator_dispather(
+        args, options,
+        by_positional, by_only_return_type_checking,
+        by_compound, by_inspection):
+
     if not args and 'return_type' not in options:
         raise MagicSyntaxError(
             'empty args with no return_type option.',
         )
 
-    if 'return_type' in options or type_object(args[0]):
+    if len(args) == 1 and args[0] is Ellipsis:
+        return by_only_return_type_checking(
+            options.get('return_type', SigParameter.empty),
+        )
+
+    elif 'return_type' in options or type_object(args[0]):
         return by_positional(args, options)
 
     elif isinstance(args[0], Constraint):
@@ -169,10 +181,28 @@ def _function_constraints_by_inspection(function):
     return wrapper
 
 
+def _function_constraints_by_only_return_type_checking(return_type):
+
+    return_type = build_return_type(return_type)
+
+    def decorator(function):
+        raise_on_non_callable(function)
+
+        @wraps(function)
+        def wrapper(*args, **kwargs):
+            ret = function(*args, **kwargs)
+            check_ret(ret, return_type)
+            return ret
+
+        return wrapper
+    return decorator
+
+
 def function_constraints(*args, **options):
     return decorator_dispather(
         args, options,
         _function_constraints_pass_by_positional_args,
+        _function_constraints_by_only_return_type_checking,
         _function_constraints_pass_by_compound_args,
         _function_constraints_by_inspection,
     )
@@ -277,10 +307,28 @@ def _method_constraints_by_inspection(function):
     return wrapper
 
 
+def _method_constraints_by_only_return_type_checking(return_type):
+
+    return_type = build_return_type(return_type)
+
+    def decorator(function):
+        raise_on_non_callable(function)
+
+        @wraps(function)
+        def wrapper(self_or_cls, *args, **kwargs):
+            ret = function(self_or_cls, *args, **kwargs)
+            check_ret(ret, return_type)
+            return ret
+
+        return wrapper
+    return decorator
+
+
 def method_constraints(*args, **options):
     return decorator_dispather(
         args, options,
         _method_constraints_pass_by_positional_args,
+        _method_constraints_by_only_return_type_checking,
         _method_constraints_pass_by_compound_args,
         _method_constraints_by_inspection,
     )
