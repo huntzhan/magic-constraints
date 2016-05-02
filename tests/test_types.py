@@ -230,7 +230,11 @@ def test_callable():
     with pytest.raises(TypeError):
         c1_wrapper1(42, 42.0)
 
-    c1_wrapper2 = Callable[..., Any](c1)
+
+def test_callable_ellipsis():
+    def c1(a, b=1): pass
+
+    c1_wrapper2 = Callable[Ellipsis, Any](c1)
     c1_wrapper2(42, 42)
     c1_wrapper2(42, 42.0)
 

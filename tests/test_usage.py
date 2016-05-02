@@ -97,23 +97,6 @@ def test_method_constraints():
     with pytest.raises(SyntaxError):
         method_constraints()
 
-    class Case2(object):
-
-        @method_constraints(...)
-        def test_self1(self, *a):
-            pass
-
-        @method_constraints(..., return_type=int)
-        def test_self2(self, a):
-            return a
-
-    case2 = Case2()
-    case2.test_self1(1, 2, 3.5)
-    case2.test_self1()
-    case2.test_self2(42)
-    with pytest.raises(TypeError):
-        case2.test_self2(42.0)
-
 
 def test_class_initialization_constraints():
 
@@ -294,13 +277,13 @@ def test_defered_checking():
 
 def test_ellipsis():
 
-    @function_constraints(...)
+    @function_constraints(Ellipsis)
     def func1(*args): pass
 
     func1(1, 2, 3)
     func1(1.0, 2, 3)
 
-    @function_constraints(..., return_type=int)
+    @function_constraints(Ellipsis, return_type=int)
     def func2(a):
         return a
 
