@@ -118,6 +118,11 @@ def test_immutable_mapping():
     )
 
 
+def touch(iterable):
+    for _ in iterable:
+        pass
+
+
 def test_iterator():
     assert isinstance(iter([1, 2]), Iterator)
     assert not isinstance([1, 2], Iterator)
@@ -129,11 +134,13 @@ def test_iterator():
 
     Iterator[int, int, int]
 
-    for _ in Iterator[int, int](iter([1, 2])):
-        pass
+    touch(
+        Iterator[int, int](iter([1, 2])),
+    )
 
-    for _ in Iterator[int, float](iter([1, 2.0])):
-        pass
+    touch(
+        Iterator[int, float](iter([1, 2.0])),
+    )
 
     with pytest.raises(TypeError):
         Iterator([1, 2])
@@ -141,18 +148,23 @@ def test_iterator():
         Iterator[int]([1, 2])
 
     with pytest.raises(TypeError):
-        for _ in Iterator[int](iter([1, 2.0])):
-            pass
+        touch(
+            Iterator[int](iter([1, 2.0])),
+        )
 
     with pytest.raises(TypeError):
-        for _ in Iterator[int, int](iter([1, 2.0])):
-            pass
+        touch(
+            Iterator[int, int](iter([1, 2.0])),
+        )
 
     # lazy evaluation.
     it = Iterator[int, int](iter([1, 2, 3]))
     with pytest.raises(IndexError):
-        for _ in it:
-            pass
+        touch(it)
+
+    it = Iterator[int, int](iter([1]))
+    with pytest.raises(IndexError):
+        touch(it)
 
     assert isinstance(
         (i for i in range(10)),
@@ -173,10 +185,27 @@ def test_iterable():
         Iterable[int](1)
 
     with pytest.raises(TypeError):
-        for _ in Iterable[int]([1, 2.0]):
-            pass
+        touch(
+            Iterable[int]([1, 2.0]),
+        )
+
+    Iterable[int, int]
+    touch(
+        Iterable[int, int]([1, 2]),
+    )
     with pytest.raises(TypeError):
-        Iterable[int, int]
+        touch(
+            Iterable[int, int]([1, 2.0]),
+        )
+
+    with pytest.raises(IndexError):
+        touch(
+            Iterable[int, int]([1]),
+        )
+    with pytest.raises(IndexError):
+        touch(
+            Iterable[int, int]([1, 2, 3]),
+        )
 
     assert isinstance(
         (i for i in range(10)),

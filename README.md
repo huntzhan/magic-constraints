@@ -110,7 +110,7 @@ More avaliable ABCs:
 | MutableMapping    | [ type, type ] |
 | ImmutableMapping  | [ type, type ] |
 | Iterator          | [ type ], [ type, ... ] |
-| Iterable          | [ type ], /\* TODO [ type, ... ] \*/ |
+| Iterable          | [ type ], [ type, ... ] |
 | Callable          | [ [type, ...], type ], [ Ellipsis, type ] |
 | Any               | Not Support |
 | Union             | [ type, ... ] |
