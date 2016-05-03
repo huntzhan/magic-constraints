@@ -6,7 +6,7 @@ from __future__ import (
 
 NAME = 'magic_constraints'
 # https://www.python.org/dev/peps/pep-0440/
-VERSION = '0.4.rc0'
+VERSION = '0.4.0'
 AUTHORS = [
     'huntzhan',
 ]
