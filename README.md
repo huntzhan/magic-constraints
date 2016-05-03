@@ -1,14 +1,14 @@
 # Introduction
 
-`magic-constraints` implemented (or hacked) several [abstract base classes][1] (ABC for short) to support [type introspection][2], that is, the `isinstance`/`issubclass` operatios in Python. Specialization of ABC is support, i.e. `Sequence -> Sequence[int]`.
+*magic-constraints* implemented (or hacked) a bunch of [abstract base classes][1] (ABCs for short) to support [type introspection][2], that is, the `isinstance`/`issubclass` operatios in Python. Specialization of ABC is support, i.e. `Sequence[int]` and `Sequence[int]` are specialized versions of `Sequence`.
 
-Also, `magic-constraints` provides several decorators to enable runtime type/value checking on the parameters and return value of function/method. Especially, thoses decorators fit well with the type annotation feature introduced in Python 3.x:
+Also, *magic-constraints* provides several decorators to enable runtime type/value checking on the parameters and return value of user-defined function and method. Especially, thoses decorators fit well with the type annotation feature introduced in Python 3.x:
 
 ```python
-from magic_constraints import function_constraints
+from magic_constraints import function_constraints, Optional
 
 
-# foobar should accept either an int instance or a None object.
+# foobar should accept either an int object or a None object.
 @function_constraints
 def function(foobar: Optional[int]) -> float:
     if foobar is None:
@@ -17,10 +17,30 @@ def function(foobar: Optional[int]) -> float:
     else:
         # good case.
         return 42.0
+```
 
+Runtime:
 
+```
+# ok.
 >>> function(1)
 42.0
+
+# failed.
+# 1.0 is float, while foobar requrie int or type(None).
+>>> function(1.0)
+Traceback (most recent call last):
+...
+magic_constraints.exception.MagicTypeError:
+MagicTypeError: argument unmatched.
+-----------------------------------
+argument: 1.0
+parameter: Parameter(name='foobar', type_=Optional[int])
+-----------------------------------
+
+# failed.
+# when foobar is None, the function returns a float,
+# leading to unmatched return type error.
 >>> function(None)
 Traceback (most recent call last):
 ...
@@ -36,13 +56,13 @@ return_type: ReturnType(type_=float)
 
 ## Install
 
-```shell
+```
 $ pip install magic-constraints
 ```
 
 ## Usage Of ABCs
 
-You can invoke `isinstance`/`issubclass` operatios on `Sequence/MutableSequence/ImmutableSequence`:
+*magic-constraints* provides `Sequence/MutableSequence/ImmutableSequence`. You can invoke `isinstance`/`issubclass` operatios on :
 
 ```python
 from magic_constraints import Sequence, MutableSequence, ImmutableSequence
@@ -78,29 +98,25 @@ issubclass(ImmutableSequence, MutableSequence)
 
 More avaliable ABCs:
 
-```python
-from magic_constraints import (
-    Sequence,
-    MutableSequence,
-    ImmutableSequence,
-    
-    Set,
-    MutableSet,
-    ImmutableSet,
-    
-    Mapping,
-    MutableMapping,
-    ImmutableMapping,
-    
-    Iterable,
-    Iterator,
-    
-    Any,
-    Union,
-    Optional,
-    NoneType,
-)
-```
+| name | supported specialization(s) |
+| --- | --- |
+| Sequence          | [ type ], [ type, ... ] |
+| MutableSequence   | [ type ], [ type, ... ] |
+| ImmutableSequence | [ type ], [ type, ... ] |
+| Set               | [ type ] |
+| MutableSet        | [ type ] |
+| ImmutableSet      | [ type ] |
+| Mapping           | [ type, type ] |
+| MutableMapping    | [ type, type ] |
+| ImmutableMapping  | [ type, type ] |
+| Iterator          | [ type ], [ type, ... ] |
+| Iterable          | [ type ], /\* TODO [ type, ... ] \*/ |
+| Callable          | [ [type, ...], type ], [ Ellipsis, type ] |
+| Any               | Not Support |
+| Union             | [ type, ... ] |
+| Optional          | [ type ] |
+| NoneType          | Not Support |
+
 
 ## Usage Of Decorators
 
@@ -138,10 +154,12 @@ Only derived classes of `SyntaxError` and `TypeError` would be raised:
 
 Example:
 
-```python
+```
+# ok.
 >>> func1('key', [1, 2, 3])
 {'key': [1, 2, 3]}
->>> 
+
+# failed, bar requires a sequnce.
 >>> func1('42 is not a sequence', 42)
 Traceback (most recent call last):
 ...
@@ -151,7 +169,8 @@ MagicTypeError: argument unmatched.
 argument: 42
 parameter: Parameter(name='bar', type_=Sequence[int])
 -----------------------------------
->>> 
+
+# failed, bar requires a sequence of ints.
 >>> func1('2.0 is not int', [1, 2.0, 3])
 Traceback (most recent call last):
 ...
@@ -173,3 +192,4 @@ parameter: Parameter(name='bar', type_=Sequence[int])
 [2]: https://en.wikipedia.org/wiki/Type_introspection
 [3]: https://github.com/huntzhan/magic-constraints/wiki/magic_constrains.types
 [4]: https://github.com/huntzhan/magic-constraints/wiki/magic_constraints.decorator
+
