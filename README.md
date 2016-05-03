@@ -100,22 +100,22 @@ More avaliable ABCs:
 
 | name | supported specialization(s) |
 | --- | --- |
-| Sequence          | [ type ], [ type, ... ] |
-| MutableSequence   | [ type ], [ type, ... ] |
-| ImmutableSequence | [ type ], [ type, ... ] |
+| Sequence          | [ type ] , [ type , ... ] |
+| MutableSequence   | [ type ] , [ type , ... ] |
+| ImmutableSequence | [ type ] , [ type , ... ] |
 | Set               | [ type ] |
 | MutableSet        | [ type ] |
 | ImmutableSet      | [ type ] |
-| Mapping           | [ type, type ] |
-| MutableMapping    | [ type, type ] |
-| ImmutableMapping  | [ type, type ] |
-| Iterator          | [ type ], [ type, ... ] |
-| Iterable          | [ type ], [ type, ... ] |
-| Callable          | [ [type, ...], type ], [ Ellipsis, type ] |
-| Any               | Not Support |
-| Union             | [ type, ... ] |
+| Mapping           | [ type , type ] |
+| MutableMapping    | [ type , type ] |
+| ImmutableMapping  | [ type , type ] |
+| Iterator          | [ type ] , [ type , ... ] |
+| Iterable          | [ type ] , [ type , ... ] |
+| Callable          | [ [ type , ... ] , type ] , [ Ellipsis , type ] |
+| Any               | *not support* |
+| Union             | [ type , ... ] |
 | Optional          | [ type ] |
-| NoneType          | Not Support |
+| NoneType          | *not support* |
 
 
 ## Usage Of Decorators
