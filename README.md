@@ -1,6 +1,6 @@
 # Introduction
 
-*magic-constraints* implemented (or hacked) a bunch of [abstract base classes][1] (ABCs for short) to support [type introspection][2], that is, the `isinstance`/`issubclass` operatios in Python. Specialization of ABC is support, i.e. `Sequence[int]` and `Sequence[int]` are specialized versions of `Sequence`.
+*magic-constraints* implemented (or hacked) a bunch of [abstract base classes][1] (ABCs for short) to support [type introspection][2], that is, the `isinstance`/`issubclass` operations in Python. Specialization of ABC is support, i.e. `Sequence[int]` and `Sequence[int]` are specialized versions of `Sequence`.
 
 Also, *magic-constraints* provides several decorators to enable runtime type/value checking on the parameters and return value of user-defined function and method. Especially, thoses decorators fit well with the type annotation feature introduced in Python 3.x:
 
